@@ -4,6 +4,14 @@ import { fileURLToPath } from 'node:url';
 
 import { normalizeText, normalizeLanguage, getEvidenceSnippet } from '../utils/validation.js';
 import type { DetectionSignal, Language, RiskLevel, AssessmentLevel } from '../models/analysis.js';
+import {
+  DEFAULT_INDICATOR_WEIGHT,
+  EVIDENCE_SNIPPET_MAX_LENGTH,
+  RISK_SCORE_BASE_BONUS,
+  RISK_SCORE_HIGH_THRESHOLD,
+  RISK_SCORE_MAX,
+  RISK_SCORE_SUSPICIOUS_THRESHOLD,
+} from '../utils/constants.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataPath = path.resolve(__dirname, '../data');
@@ -13,10 +21,10 @@ function loadJson<T>(fileName: string): T {
 }
 
 function scoreToLevel(score: number): { riskLevel: RiskLevel; assessment: AssessmentLevel } {
-  if (score >= 70) {
+  if (score >= RISK_SCORE_HIGH_THRESHOLD) {
     return { riskLevel: 'HIGH', assessment: 'HIGH CONCERN' };
   }
-  if (score >= 35) {
+  if (score >= RISK_SCORE_SUSPICIOUS_THRESHOLD) {
     return { riskLevel: 'SUSPICIOUS', assessment: 'REQUIRES CAUTION' };
   }
   return { riskLevel: 'LOW', assessment: 'LOW CONCERN' };
@@ -44,19 +52,19 @@ export function detectInvestmentRisk({
     const regex = new RegExp(indicator.pattern, 'i');
     if (!regex.test(inputText)) continue;
 
-    const evidence = getEvidenceSnippet(inputText.match(regex)?.[0] ?? indicator.examples[0] ?? indicator.description, 200);
+    const evidence = getEvidenceSnippet(inputText.match(regex)?.[0] ?? indicator.examples[0] ?? indicator.description, EVIDENCE_SNIPPET_MAX_LENGTH);
     matches.push({
       id: indicator.id,
       title: indicator.category,
       severity: indicator.severity as DetectionSignal['severity'],
       description: indicator.description,
       evidence,
-      weight: indicator.weight ?? 10,
+      weight: indicator.weight ?? DEFAULT_INDICATOR_WEIGHT,
       category: indicator.category,
     });
   }
 
-  const riskScore = Math.min(100, matches.reduce((sum, signal) => sum + signal.weight, 0) + (matches.length > 0 ? 8 : 0));
+  const riskScore = Math.min(RISK_SCORE_MAX, matches.reduce((sum, signal) => sum + signal.weight, 0) + (matches.length > 0 ? RISK_SCORE_BASE_BONUS : 0));
   const { riskLevel, assessment } = scoreToLevel(riskScore);
 
   const recommendations =

@@ -8,6 +8,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { Language } from '../types';
+import { translations } from '../i18n/translations';
 
 interface TipProfilerPageProps {
   currentLanguage: Language;
@@ -22,7 +23,7 @@ export const TipProfilerPage: React.FC<TipProfilerPageProps> = ({
 }) => {
   const [tipInput, setTipInput] = useState('');
   const [activeSpecimenIndex, setActiveSpecimenIndex] = useState(0);
-  const isHi = currentLanguage === 'hi';
+  const t = translations[currentLanguage].tipPage;
 
   const specimens = [
     {
@@ -88,12 +89,10 @@ export const TipProfilerPage: React.FC<TipProfilerPageProps> = ({
       {/* Header */}
       <div className="text-center space-y-2">
         <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-[#111111] tracking-tight">
-          {isHi ? 'टिप एवं ग्रुप विश्लेषक (Tip & Group Profiler)' : 'Tip & Group Profiler'}
+          {t.pageTitle}
         </h1>
         <p className="font-sans text-xs sm:text-sm text-[#444748] max-w-lg mx-auto leading-relaxed">
-          {isHi
-            ? 'टेलीग्राम, व्हाट्सएप या सोशल मीडिया पर आने वाली संदेहास्पद स्टॉक टिप्स और वीआईपी ग्रुप्स के व्यवहार का विश्लेषण करें।'
-            : 'Analyze suspicious investment tips, paid groups, and pressure tactics in social messaging channels.'}
+          {t.pageSubtitle}
         </p>
       </div>
 
@@ -101,9 +100,9 @@ export const TipProfilerPage: React.FC<TipProfilerPageProps> = ({
       <div className="bg-white border border-[#E5E4DE] rounded-[4px] p-6 sm:p-7 shadow-[4px_4px_0px_rgba(17,17,17,0.03)] space-y-4">
         <div className="flex items-center justify-between text-xs text-[#66645E]">
           <span className="font-mono uppercase font-bold text-[#111111]">
-            {isHi ? 'कोई भी टिप यहां पेस्ट करें' : 'Paste a Tip or Group Message to Analyze'}
+            {t.inputLabel}
           </span>
-          <span className="text-[11px]">No trading signals or stock calls</span>
+          <span className="text-[11px]">{t.noTradingNote}</span>
         </div>
 
         <form onSubmit={handleAnalyzeCustom} className="space-y-4">
@@ -111,21 +110,20 @@ export const TipProfilerPage: React.FC<TipProfilerPageProps> = ({
             rows={4}
             value={tipInput}
             onChange={(e) => setTipInput(e.target.value)}
-            placeholder={`Paste Telegram channel alert or WhatsApp broadcast message...
-Example: "🚨 INSIDER STOCK ALERT: Guaranteed 45% return in 10 sessions! Pay ₹10,000 upfront fee to personal UPI..."`}
+            placeholder={t.inputPlaceholder}
             className="w-full p-4 rounded-[4px] border border-[#E5E4DE] bg-[#FCF9F8] text-sm font-sans focus:outline-none focus:border-[#111111] text-[#111111]"
           />
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <span className="text-[11px] font-sans text-[#66645E]">
-              Evaluates: Urgency, insider promises, paid group funnels, and personal payment routing
+              {t.evaluatesNote}
             </span>
             <button
               type="submit"
               disabled={!tipInput.trim()}
               className="bg-[#111111] text-white px-6 py-2.5 rounded-[2px] text-xs font-mono font-bold uppercase tracking-wider hover:bg-[#2A2A28] disabled:opacity-40"
             >
-              Analyze Tip →
+              {t.analyzeTipBtn}
             </button>
           </div>
         </form>
@@ -137,7 +135,7 @@ Example: "🚨 INSIDER STOCK ALERT: Guaranteed 45% return in 10 sessions! Pay �
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#111111]" />
             <h2 className="font-serif text-lg font-bold text-[#111111]">
-              Sample Tip Profile Breakdown
+              {t.sampleBreakdownTitle}
             </h2>
           </div>
 
@@ -146,7 +144,7 @@ Example: "🚨 INSIDER STOCK ALERT: Guaranteed 45% return in 10 sessions! Pay �
             className="flex items-center gap-1.5 text-xs font-mono text-[#111111] border border-[#E5E4DE] px-3 py-1.5 rounded-[2px] bg-white hover:border-[#111111]"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Next Specimen ({activeSpecimenIndex + 1}/2)</span>
+            <span>{t.nextSpecimen} ({activeSpecimenIndex + 1}/2)</span>
           </button>
         </div>
 
@@ -160,7 +158,7 @@ Example: "🚨 INSIDER STOCK ALERT: Guaranteed 45% return in 10 sessions! Pay �
           {/* Intercepted Text */}
           <div className="p-4 rounded-[4px] bg-[#FCF9F8] border border-[#E5E4DE]">
             <div className="text-[10px] font-mono uppercase text-[#66645E] mb-1 font-semibold">
-              Tip Content:
+              {t.tipContent}
             </div>
             <p className="font-mono text-xs sm:text-sm text-[#111111] whitespace-pre-wrap leading-relaxed">
               {currentSpecimen.text}
@@ -170,7 +168,7 @@ Example: "🚨 INSIDER STOCK ALERT: Guaranteed 45% return in 10 sessions! Pay �
           {/* Tactics Identified */}
           <div className="space-y-1.5">
             <div className="text-[11px] font-mono uppercase font-bold text-[#66645E]">
-              Communication Tactics Identified:
+              {t.tacticsLabel}
             </div>
             <div className="flex flex-wrap gap-2">
               {currentSpecimen.tactics.map((tactic, idx) => (
@@ -187,7 +185,7 @@ Example: "🚨 INSIDER STOCK ALERT: Guaranteed 45% return in 10 sessions! Pay �
           {/* Verification Gaps */}
           <div className="space-y-1.5">
             <div className="text-[11px] font-mono uppercase font-bold text-[#991B1B]">
-              Verification Gaps:
+              {t.verificationGapsLabel}
             </div>
             <ul className="text-xs text-[#333333] space-y-1 list-disc list-inside">
               {currentSpecimen.verificationGaps.map((gap, idx) => (
@@ -199,7 +197,7 @@ Example: "🚨 INSIDER STOCK ALERT: Guaranteed 45% return in 10 sessions! Pay �
           {/* Safe Next Steps */}
           <div className="space-y-1.5 pt-2 border-t border-[#E5E4DE]">
             <div className="text-[11px] font-mono uppercase font-bold text-[#2D6A4F]">
-              Safe Next Steps:
+              {t.safeNextStepsLabel}
             </div>
             <div className="space-y-1">
               {currentSpecimen.safeNextSteps.map((step, idx) => (
@@ -215,7 +213,7 @@ Example: "🚨 INSIDER STOCK ALERT: Guaranteed 45% return in 10 sessions! Pay �
               onClick={() => onAnalyzeMessage(currentSpecimen.text)}
               className="bg-[#111111] text-white px-5 py-2.5 rounded-[2px] text-xs font-mono font-semibold uppercase hover:bg-[#2A2A28]"
             >
-              Scan This Tip in Main Scanner →
+              {t.scanThisTipBtn}
             </button>
           </div>
         </div>

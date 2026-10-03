@@ -4,6 +4,7 @@ import { detectInvestmentRisk } from '../detection/detector.js';
 import { generateContextualAnalysis } from '../services/geminiService.js';
 import { verifyBroker, verifyDomain, verifyEntity } from '../services/verificationService.js';
 import { normalizeLanguage, normalizeText, validateText } from '../utils/validation.js';
+import { CONFIDENCE_SCORE_OFFSET, RISK_SCORE_MAX } from '../utils/constants.js';
 
 function normalizeType(raw?: string) {
   if (raw === 'url' || raw === 'screenshot' || raw === 'tip' || raw === 'broker') return raw;
@@ -39,7 +40,7 @@ export async function analyzeMessageController(req: Request, res: Response) {
     inputType: result.sourceType,
     riskScore: result.riskScore,
     riskLevel: result.riskLevel,
-    confidence: Math.min(100, result.riskScore + 10),
+    confidence: Math.min(RISK_SCORE_MAX, result.riskScore + CONFIDENCE_SCORE_OFFSET),
     summary: result.summary,
     warningSignals: result.warningSignals || result.signals || [],
     extractedClaims: result.extractedClaims || [],
@@ -100,7 +101,7 @@ export async function analyzeUrlController(req: Request, res: Response) {
     inputType: 'url',
     riskScore: result.riskScore,
     riskLevel: result.riskLevel,
-    confidence: Math.min(100, result.riskScore + 10),
+    confidence: Math.min(RISK_SCORE_MAX, result.riskScore + CONFIDENCE_SCORE_OFFSET),
     summary: result.summary,
     warningSignals: result.warningSignals || result.signals || [],
     extractedClaims: result.extractedClaims || [],

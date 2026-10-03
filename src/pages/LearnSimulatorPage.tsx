@@ -15,6 +15,7 @@ import { educationGuides } from '../data/educationData';
 import { GuideDetailModal } from '../components/modals/GuideDetailModal';
 import { storageService } from '../services/storageService';
 import { saveSimulatorProgressToFirestore } from '../services/firebase';
+import { translations } from '../i18n/translations';
 
 interface LearnSimulatorPageProps {
   currentLanguage: Language;
@@ -30,7 +31,7 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
   const [tab, setTab] = useState<'simulator' | 'guides'>('simulator');
   const [selectedGuide, setSelectedGuide] = useState<EducationGuide | null>(null);
 
-  const isHi = currentLanguage === 'hi';
+  const t = translations[currentLanguage].learn;
 
   // Simulator state
   const scenarioList = scamScenarios[currentLanguage] || scamScenarios.en;
@@ -88,12 +89,10 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
       {/* Header */}
       <div className="text-center space-y-2">
         <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-[#111111] tracking-tight">
-          {isHi ? 'सीखें एवं सिमुलेटर (Learn / Simulator)' : 'Learn / Simulator'}
+          {t.pageTitle}
         </h1>
         <p className="font-sans text-xs sm:text-sm text-[#444748] max-w-lg mx-auto leading-relaxed">
-          {isHi
-            ? 'धोखाधड़ी के सामान्य तरीकों को समझें और व्यावहारिक परिदृश्यों में सुरक्षित निर्णय लेने का अभ्यास करें।'
-            : 'Understand common investment scams and practice identifying warning signs safely.'}
+          {t.pageSubtitle}
         </p>
 
         {/* 2-way Segmented Control */}
@@ -107,7 +106,7 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-[#D97706]" />
-            <span>{isHi ? 'सिमुलेटर (Simulator)' : 'Scam Simulator'}</span>
+            <span>{isHi ? t.tabSimulator : t.tabSimulator}</span>
           </button>
 
           <button
@@ -119,7 +118,7 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
             }`}
           >
             <BookOpen className="w-3.5 h-3.5 text-[#2D6A4F]" />
-            <span>{isHi ? 'मार्गदर्शिका (Guides)' : 'Safety Guides'}</span>
+            <span>{t.tabGuides}</span>
           </button>
         </div>
       </div>
@@ -139,14 +138,14 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
                 </h2>
               </div>
               <div className="text-xs font-mono text-[#66645E]">
-                Safe Choices: <strong className="text-[#2D6A4F]">{score} / {attempted}</strong>
+                {t.safeChoices} <strong className="text-[#2D6A4F]">{score} / {attempted}</strong>
               </div>
             </div>
 
             {/* Fictional Message Box */}
             <div className="p-4 sm:p-5 rounded-[4px] bg-[#FCF9F8] border border-[#E5E4DE]">
               <div className="text-[10px] font-mono uppercase text-[#66645E] mb-1 font-semibold">
-                Simulated Pitch ({currentScenario.claimedBy}):
+                {t.simulatedPitch} ({currentScenario.claimedBy}):
               </div>
               <p className="font-mono text-xs sm:text-sm text-[#111111] whitespace-pre-wrap leading-relaxed">
                 {currentScenario.scenarioText}
@@ -156,7 +155,7 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
             {/* Interactive Question */}
             <div>
               <h3 className="font-serif text-base sm:text-lg font-bold text-[#111111] mb-3">
-                {isHi ? 'आप क्या करेंगे? (What would you do?)' : 'What would you do?'}
+                {isHi ? t.whatWouldYouDo : t.whatWouldYouDo}
               </h3>
 
               <div className="space-y-2.5">
@@ -208,13 +207,13 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
                   }`}
                 >
                   <div className="font-mono font-bold uppercase mb-1">
-                    {chosenOption?.isSafe ? 'Good Decision!' : 'Warning Flag:'}
+                    {chosenOption?.isSafe ? t.goodDecision : t.warningFlag}
                   </div>
                   <p className="leading-relaxed">{chosenOption?.feedback}</p>
                 </div>
 
                 <div className="space-y-1.5 text-xs text-[#444748]">
-                  <strong className="text-[#111111]">Warning signs in this scenario:</strong>
+                  <strong className="text-[#111111]">{t.warningSigns}</strong>
                   <ul className="list-disc list-inside space-y-0.5">
                     {currentScenario.warningSignsFound.map((sign, idx) => (
                       <li key={idx}>{sign}</li>
@@ -227,21 +226,24 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
                     <div className="font-bold flex items-center justify-between text-sm">
                       <span className="flex items-center gap-1.5">
                         <span>🏅</span>
-                        <span>Achievement Unlocked: Investor Safety Learner</span>
+                        <span>{t.achievement}</span>
                       </span>
                       <span className="text-xs bg-[#2D6A4F] text-white px-2 py-0.5 rounded font-bold">
                         {Math.round((score / scenarioList.length) * 100)} Points
                       </span>
                     </div>
                     <p>
-                      You answered all {scenarioList.length} questions ({score}/{scenarioList.length} Correct). Your official badge has been added to your Profile!
+                      {t.achievementBody
+                        .replace('{total}', String(scenarioList.length))
+                        .replace('{total}', String(scenarioList.length))
+                        .replace('{score}', String(score))}
                     </p>
                     {onOpenProfile && (
                       <button
                         onClick={onOpenProfile}
                         className="text-xs font-mono font-bold underline text-[#1B4332] hover:text-[#111111] flex items-center gap-1"
                       >
-                        <span>View in Profile & Share Achievement →</span>
+                        <span>{t.viewProfile}</span>
                       </button>
                     )}
                   </div>
@@ -252,7 +254,7 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
                     onClick={handleNextScenario}
                     className="bg-[#111111] text-white px-5 py-2.5 rounded-[2px] text-xs font-mono font-semibold uppercase hover:bg-[#2A2A28]"
                   >
-                    Try Another Scenario →
+                    {t.tryAnother}
                   </button>
                 </div>
               </div>
@@ -287,7 +289,7 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
                 </div>
 
                 <div className="pt-4 mt-3 border-t border-[#E5E4DE] flex items-center justify-between text-xs font-mono text-[#111111] font-semibold">
-                  <span>Read Guide</span>
+                  <span>{t.readGuide}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </div>

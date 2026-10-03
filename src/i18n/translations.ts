@@ -237,6 +237,71 @@ export interface Translations {
     changePassword: string;
     privacyStorageDesc: string;
   };
+  scan: {
+    pageTitle: string;
+    pageSubtitle: string;
+    tabMessage: string;
+    tabScreenshot: string;
+    tabLink: string;
+    tabEntity: string;
+    msgLabel: string;
+    pasteBtn: string;
+    msgPlaceholder: string;
+    screenshotDropTitle: string;
+    screenshotDropSub: string;
+    screenshotUploaded: string;
+    removeImage: string;
+    ocrLabel: string;
+    ocrReading: string;
+    ocrPlaceholder: string;
+    linkLabel: string;
+    entityNameLabel: string;
+    entityNamePlaceholder: string;
+    entityRegLabel: string;
+    entityRegPlaceholder: string;
+    analyzeBtn: string;
+    privacyNotice: string;
+    trySampleLabel: string;
+    sensitiveWarning: string;
+    errorMessage: string;
+    errorNoMessage: string;
+    errorNoScreenshot: string;
+    errorNoLink: string;
+    errorNoEntity: string;
+  };
+  learn: {
+    pageTitle: string;
+    pageSubtitle: string;
+    tabSimulator: string;
+    tabGuides: string;
+    safeChoices: string;
+    simulatedPitch: string;
+    whatWouldYouDo: string;
+    goodDecision: string;
+    warningFlag: string;
+    warningSigns: string;
+    achievement: string;
+    achievementBody: string;
+    viewProfile: string;
+    tryAnother: string;
+    readGuide: string;
+  };
+  tipPage: {
+    pageTitle: string;
+    pageSubtitle: string;
+    inputLabel: string;
+    inputPlaceholder: string;
+    evaluatesNote: string;
+    analyzeTipBtn: string;
+    sampleBreakdownTitle: string;
+    nextSpecimen: string;
+    tipContent: string;
+    tacticsLabel: string;
+    verificationGapsLabel: string;
+    safeNextStepsLabel: string;
+    scanThisTipBtn: string;
+    noTradingNote: string;
+  };
 }
 
 export const translations: Record<Language, Translations> = {
@@ -477,6 +542,71 @@ export const translations: Record<Language, Translations> = {
       changePassword: 'Change Password',
       privacyStorageDesc: 'VeriVest operates on an ephemeral analysis model. Uploaded text and imagery are sanitized in RAM and are not indexed in public machine learning sets.',
     },
+    scan: {
+      pageTitle: 'SCAN',
+      pageSubtitle: 'Check a suspicious investment message, screenshot or link before you act.',
+      tabMessage: 'Message',
+      tabScreenshot: 'Screenshot',
+      tabLink: 'Link',
+      tabEntity: 'Entity',
+      msgLabel: 'Paste WhatsApp, Telegram, SMS, or email claim:',
+      pasteBtn: 'Paste',
+      msgPlaceholder: 'Paste suspicious message here...\nExample: "Guaranteed 40% returns in 7 days! Only 10 spots left. Transfer to coordinator via UPI: abcwealth@okaxis"',
+      screenshotDropTitle: 'Click or drag screenshot here',
+      screenshotDropSub: 'PNG, JPG, or WEBP. Uploaded images are processed in-memory and not stored.',
+      screenshotUploaded: 'Uploaded Screenshot:',
+      removeImage: 'Remove Image',
+      ocrLabel: 'Extracted Text (OCR):',
+      ocrReading: 'Reading text...',
+      ocrPlaceholder: 'Extracted text will appear here...',
+      linkLabel: 'Enter suspicious investment website, link, or broker portal:',
+      entityNameLabel: 'Claimed Organization or Advisor Name:',
+      entityNamePlaceholder: 'e.g. Apex Wealth Advisors or Zerodha',
+      entityRegLabel: 'Registration Number (Optional):',
+      entityRegPlaceholder: 'e.g. INZ000293433 or INA000123456',
+      analyzeBtn: 'Analyze Claim',
+      privacyNotice: 'VeriVest identifies warning signs and verification gaps. It does not provide financial or trading advice.',
+      trySampleLabel: 'Or try a realistic sample claim:',
+      sensitiveWarning: 'Sensitive information detected. Please remove OTPs or private passwords before continuing.',
+      errorMessage: 'Please upload a PNG, JPG or WEBP image.',
+      errorNoMessage: 'Please enter an investment message to check.',
+      errorNoScreenshot: 'Please upload a screenshot to inspect.',
+      errorNoLink: 'Please enter a website link to check.',
+      errorNoEntity: 'Please enter an entity name or registration number.',
+    },
+    learn: {
+      pageTitle: 'Learn / Simulator',
+      pageSubtitle: 'Understand common investment scams and practice identifying warning signs safely.',
+      tabSimulator: 'Scam Simulator',
+      tabGuides: 'Safety Guides',
+      safeChoices: 'Safe Choices:',
+      simulatedPitch: 'Simulated Pitch',
+      whatWouldYouDo: 'What would you do?',
+      goodDecision: 'Good Decision!',
+      warningFlag: 'Warning Flag:',
+      warningSigns: 'Warning signs in this scenario:',
+      achievement: 'Achievement Unlocked: Investor Safety Learner',
+      achievementBody: 'You answered all {total} questions ({score}/{total} Correct). Your official badge has been added to your Profile!',
+      viewProfile: 'View in Profile & Share Achievement →',
+      tryAnother: 'Try Another Scenario →',
+      readGuide: 'Read Guide',
+    },
+    tipPage: {
+      pageTitle: 'Tip & Group Profiler',
+      pageSubtitle: 'Analyze suspicious investment tips, paid groups, and pressure tactics in social messaging channels.',
+      inputLabel: 'Paste a Tip or Group Message to Analyze',
+      inputPlaceholder: 'Paste Telegram channel alert or WhatsApp broadcast message...\nExample: "🚨 INSIDER STOCK ALERT: Guaranteed 45% return in 10 sessions! Pay ₹10,000 upfront fee to personal UPI..."',
+      evaluatesNote: 'Evaluates: Urgency, insider promises, paid group funnels, and personal payment routing',
+      analyzeTipBtn: 'Analyze Tip →',
+      sampleBreakdownTitle: 'Sample Tip Profile Breakdown',
+      nextSpecimen: 'Next Specimen',
+      tipContent: 'Tip Content:',
+      tacticsLabel: 'Communication Tactics Identified:',
+      verificationGapsLabel: 'Verification Gaps:',
+      safeNextStepsLabel: 'Safe Next Steps:',
+      scanThisTipBtn: 'Scan This Tip in Main Scanner →',
+      noTradingNote: 'No trading signals or stock calls',
+    },
   },
 
   hi: {
@@ -716,6 +846,71 @@ export const translations: Record<Language, Translations> = {
       changePassword: 'पासवर्ड बदलें',
       privacyStorageDesc: 'VeriVest आपकी गोपनीयता का पूरा सम्मान करता है। विश्लेषण के बाद डेटा को सुरक्षित तरीके से हटा दिया जाता है।',
     },
+    scan: {
+      pageTitle: 'स्कैन करें',
+      pageSubtitle: 'कार्रवाई करने या पैसे भेजने से पहले किसी भी संदिग्ध निवेश संदेश, स्क्रीनशॉट या लिंक की जांच करें।',
+      tabMessage: 'संदेश (Message)',
+      tabScreenshot: 'स्क्रीनशॉट',
+      tabLink: 'लिंक (Link)',
+      tabEntity: 'संस्था (Entity)',
+      msgLabel: 'व्हाट्सएप, टेलीग्राम, SMS या ईमेल दावा यहाँ पेस्ट करें:',
+      pasteBtn: 'पेस्ट करें',
+      msgPlaceholder: 'संदिग्ध संदेश यहाँ पेस्ट करें...\nउदाहरण: "7 दिनों में 40% गारंटीड रिटर्न! केवल 10 स्थान शेष। UPI पर पैसे भेजें: abcwealth@okaxis"',
+      screenshotDropTitle: 'यहाँ क्लिक करें या स्क्रीनशॉट खींचें',
+      screenshotDropSub: 'PNG, JPG, या WEBP। अपलोड की गई छवियां मेमोरी में प्रोसेस होती हैं और संग्रहीत नहीं होती।',
+      screenshotUploaded: 'अपलोड किया गया स्क्रीनशॉट:',
+      removeImage: 'छवि हटाएं',
+      ocrLabel: 'निकाला गया टेक्स्ट (OCR):',
+      ocrReading: 'टेक्स्ट पढ़ा जा रहा है...',
+      ocrPlaceholder: 'निकाला गया टेक्स्ट यहाँ दिखेगा...',
+      linkLabel: 'संदिग्ध वेबसाइट लिंक या ब्रोकर पोर्टल दर्ज करें:',
+      entityNameLabel: 'दावा की गई संस्था या सलाहकार का नाम:',
+      entityNamePlaceholder: 'उदा. एपेक्स वेल्थ एडवाइजर्स या ज़ेरोधा',
+      entityRegLabel: 'रजिस्ट्रेशन नंबर (वैकल्पिक):',
+      entityRegPlaceholder: 'उदा. INZ000293433 या INA000123456',
+      analyzeBtn: 'विश्लेषण करें (Analyze)',
+      privacyNotice: 'VeriVest चेतावनी संकेत और सत्यापन की कमियों की पहचान करता है। यह वित्तीय या ट्रेडिंग सलाह नहीं देता।',
+      trySampleLabel: 'या एक यथार्थवादी उदाहरण आजमाएं:',
+      sensitiveWarning: 'संवेदनशील जानकारी पहचानी गई। कृपया पासवर्ड या ओटीपी हटा दें।',
+      errorMessage: 'कृपया PNG, JPG या WEBP छवि अपलोड करें।',
+      errorNoMessage: 'कृपया जांचने के लिए कोई संदेश लिखें।',
+      errorNoScreenshot: 'कृपया कोई स्क्रीनशॉट अपलोड करें।',
+      errorNoLink: 'कृपया वेबसाइट लिंक दर्ज करें।',
+      errorNoEntity: 'कृपया संस्था या रजिस्ट्रेशन नंबर लिखें।',
+    },
+    learn: {
+      pageTitle: 'सीखें एवं सिमुलेटर (Learn / Simulator)',
+      pageSubtitle: 'धोखाधड़ी के सामान्य तरीकों को समझें और व्यावहारिक परिदृश्यों में सुरक्षित निर्णय लेने का अभ्यास करें।',
+      tabSimulator: 'सिमुलेटर (Simulator)',
+      tabGuides: 'मार्गदर्शिका (Guides)',
+      safeChoices: 'सुरक्षित उत्तर:',
+      simulatedPitch: 'अनुकरणीय प्रस्ताव',
+      whatWouldYouDo: 'आप क्या करेंगे? (What would you do?)',
+      goodDecision: 'अच्छा निर्णय!',
+      warningFlag: 'चेतावनी संकेत:',
+      warningSigns: 'इस परिदृश्य में चेतावनी के संकेत:',
+      achievement: 'उपलब्धि: निवेशक सुरक्षा सीखने वाला',
+      achievementBody: 'आपने सभी {total} प्रश्नों के उत्तर दिए ({score}/{total} सही)। आपका बैज प्रोफ़ाइल में जोड़ दिया गया है!',
+      viewProfile: 'प्रोफ़ाइल में देखें और उपलब्धि साझा करें →',
+      tryAnother: 'दूसरा परिदृश्य आज़माएं →',
+      readGuide: 'गाइड पढ़ें',
+    },
+    tipPage: {
+      pageTitle: 'टिप एवं ग्रुप विश्लेषक (Tip & Group Profiler)',
+      pageSubtitle: 'टेलीग्राम, व्हाट्सएप या सोशल मीडिया पर आने वाली संदेहास्पद स्टॉक टिप्स और वीआईपी ग्रुप्स के व्यवहार का विश्लेषण करें।',
+      inputLabel: 'कोई भी टिप यहां पेस्ट करें',
+      inputPlaceholder: 'टेलीग्राम अलर्ट या व्हाट्सएप ब्रॉडकास्ट संदेश पेस्ट करें...\nउदाहरण: "🚨 इनसाइडर स्टॉक अलर्ट: 10 सत्रों में 45% गारंटीड रिटर्न! ₹10,000 व्यक्तिगत UPI पर भेजें..."',
+      evaluatesNote: 'मूल्यांकन करता है: तात्कालिकता, इनसाइडर वादे, भुगतान रूटिंग',
+      analyzeTipBtn: 'टिप का विश्लेषण करें →',
+      sampleBreakdownTitle: 'नमूना टिप विश्लेषण',
+      nextSpecimen: 'अगला नमूना',
+      tipContent: 'टिप सामग्री:',
+      tacticsLabel: 'पहचाने गए संचार तरीके:',
+      verificationGapsLabel: 'सत्यापन की कमियां:',
+      safeNextStepsLabel: 'सुरक्षित अगले कदम:',
+      scanThisTipBtn: 'मुख्य स्कैनर में जांचें →',
+      noTradingNote: 'कोई ट्रेडिंग सिग्नल या स्टॉक कॉल नहीं',
+    },
   },
 
   mr: {
@@ -954,6 +1149,71 @@ export const translations: Record<Language, Translations> = {
       saveChanges: 'बदल जतन करा',
       changePassword: 'पासवर्ड बदला',
       privacyStorageDesc: 'VeriVest तुमच्या गोपनीयतेचा आदर करते. विश्लेषणादरम्यान डेटा तात्पुरता प्रक्रिया केला जातो आणि साठवला जात नाही.',
+    },
+    scan: {
+      pageTitle: 'तपासणी करा',
+      pageSubtitle: 'कोणतीही कारवाई किंवा पैसे पाठवण्यापूर्वी संशयास्पद गुंतवणूक संदेश, स्क्रीनशॉट किंवा लिंक तपासा.',
+      tabMessage: 'संदेश',
+      tabScreenshot: 'स्क्रीनशॉट',
+      tabLink: 'लिंक',
+      tabEntity: 'संस्था',
+      msgLabel: 'व्हॉट्सॲप, टेलिग्राम, SMS किंवा ईमेल दावा येथे टाका:',
+      pasteBtn: 'टाका',
+      msgPlaceholder: 'संशयास्पद संदेश येथे टाका...\nउदाहरण: "७ दिवसांत ४०% हमखास परतावा! फक्त १० जागा शिल्लक. UPI वर पैसे पाठवा: abcwealth@okaxis"',
+      screenshotDropTitle: 'येथे क्लिक करा किंवा स्क्रीनशॉट ओढा',
+      screenshotDropSub: 'PNG, JPG, किंवा WEBP. अपलोड केलेल्या प्रतिमा मेमरीत प्रक्रिया केल्या जातात आणि साठवल्या जात नाहीत.',
+      screenshotUploaded: 'अपलोड केलेला स्क्रीनशॉट:',
+      removeImage: 'प्रतिमा काढा',
+      ocrLabel: 'काढलेला मजकूर (OCR):',
+      ocrReading: 'मजकूर वाचत आहे...',
+      ocrPlaceholder: 'काढलेला मजकूर येथे दिसेल...',
+      linkLabel: 'संशयास्पद वेबसाइट लिंक किंवा ब्रोकर पोर्टल टाका:',
+      entityNameLabel: 'दावा केलेल्या संस्थेचे किंवा सल्लागाराचे नाव:',
+      entityNamePlaceholder: 'उदा. एपेक्स वेल्थ ॲडव्हायझर्स किंवा झेरोधा',
+      entityRegLabel: 'नोंदणी क्रमांक (ऐच्छिक):',
+      entityRegPlaceholder: 'उदा. INZ000293433 किंवा INA000123456',
+      analyzeBtn: 'विश्लेषण करा',
+      privacyNotice: 'VeriVest धोक्याचे संकेत आणि पडताळणीतील उणिवा ओळखते. हे आर्थिक किंवा ट्रेडिंग सल्ला देत नाही.',
+      trySampleLabel: 'किंवा एक वास्तवदर्शी नमुना वापरून पहा:',
+      sensitiveWarning: 'संवेदनशील माहिती आढळली. कृपया OTP किंवा खाजगी पासवर्ड काढा.',
+      errorMessage: 'कृपया PNG, JPG किंवा WEBP प्रतिमा अपलोड करा.',
+      errorNoMessage: 'कृपया तपासण्यासाठी गुंतवणूक संदेश टाका.',
+      errorNoScreenshot: 'कृपया स्क्रीनशॉट अपलोड करा.',
+      errorNoLink: 'कृपया वेबसाइट लिंक टाका.',
+      errorNoEntity: 'कृपया संस्थेचे नाव किंवा नोंदणी क्रमांक टाका.',
+    },
+    learn: {
+      pageTitle: 'शिका / सिम्युलेटर',
+      pageSubtitle: 'सामान्य गुंतवणूक घोटाळे समजून घ्या आणि धोक्याचे संकेत ओळखण्याचा सराव करा.',
+      tabSimulator: 'घोटाळा सिम्युलेटर',
+      tabGuides: 'सुरक्षा मार्गदर्शिका',
+      safeChoices: 'सुरक्षित उत्तरे:',
+      simulatedPitch: 'अनुकरणीय प्रस्ताव',
+      whatWouldYouDo: 'तुम्ही काय कराल?',
+      goodDecision: 'चांगला निर्णय!',
+      warningFlag: 'धोक्याचा संकेत:',
+      warningSigns: 'या परिस्थितीतील धोक्याचे संकेत:',
+      achievement: 'यश: गुंतवणूकदार सुरक्षा शिकणारा',
+      achievementBody: 'तुम्ही सर्व {total} प्रश्नांची उत्तरे दिली ({score}/{total} बरोबर). तुमचा बॅज प्रोफाइलमध्ये जोडला गेला आहे!',
+      viewProfile: 'प्रोफाइल पहा आणि यश शेअर करा →',
+      tryAnother: 'दुसरा प्रसंग वापरून पहा →',
+      readGuide: 'पुस्तिका वाचा',
+    },
+    tipPage: {
+      pageTitle: 'टीप आणि ग्रुप विश्लेषक',
+      pageSubtitle: 'सोशल मेसेजिंग चॅनेल्समधील संशयास्पद गुंतवणूक टिप्स, सशुल्क ग्रुप्स आणि दबावाच्या युक्त्यांचे विश्लेषण करा.',
+      inputLabel: 'कोणतीही टीप येथे टाका',
+      inputPlaceholder: 'टेलिग्राम अलर्ट किंवा व्हॉट्सॲप ब्रॉडकास्ट टाका...\nउदाहरण: "🚨 इनसायडर स्टॉक अलर्ट: १० सत्रांत ४५% हमखास परतावा! ₹१०,००० वैयक्तिक UPI वर पाठवा..."',
+      evaluatesNote: 'मूल्यांकन करते: तातडी, इनसायडर वादे, सशुल्क ग्रुप फनेल आणि वैयक्तिक पेमेंट रूटिंग',
+      analyzeTipBtn: 'टीप तपासा →',
+      sampleBreakdownTitle: 'नमुना टीप विश्लेषण',
+      nextSpecimen: 'पुढील नमुना',
+      tipContent: 'टीप सामग्री:',
+      tacticsLabel: 'ओळखलेल्या संवाद युक्त्या:',
+      verificationGapsLabel: 'पडताळणीतील उणिवा:',
+      safeNextStepsLabel: 'सुरक्षित पुढील पावले:',
+      scanThisTipBtn: 'मुख्य स्कॅनरमध्ये तपासा →',
+      noTradingNote: 'कोणतेही ट्रेडिंग सिग्नल किंवा स्टॉक कॉल नाही',
     },
   },
 };

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Language } from '../types';
 import { demoArchetypes } from '../data/mockData';
+import { translations } from '../i18n/translations';
 
 interface ScanPageProps {
   currentLanguage: Language;
@@ -47,18 +48,14 @@ export const ScanPage: React.FC<ScanPageProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
   const [sensitiveWarning, setSensitiveWarning] = useState<string | null>(null);
 
-  const isHi = currentLanguage === 'hi';
+  const t = translations[currentLanguage].scan;
 
   const checkSensitiveData = (text: string) => {
     const sensitive =
       /\b(\d{6}|\d{4})\s*(is your otp|otp|verification code|pin|पासवर्ड|ओटीपी)\b/i.test(text) ||
       /\b(password|passwd|pin)\s*[:=]/i.test(text);
     if (sensitive) {
-      setSensitiveWarning(
-        isHi
-          ? 'संवेदनशील जानकारी पहचानी गई। कृपया पासवर्ड या ओटीपी हटा दें।'
-          : 'Sensitive information detected. Please remove OTPs or private passwords before continuing.'
-      );
+      setSensitiveWarning(t.sensitiveWarning);
     } else {
       setSensitiveWarning(null);
     }
@@ -85,7 +82,7 @@ export const ScanPage: React.FC<ScanPageProps> = ({
   const processFile = (file: File) => {
     const valid = ['image/png', 'image/jpeg', 'image/webp'];
     if (!valid.includes(file.type)) {
-      setErrorMessage('Please upload a PNG, JPG or WEBP image.');
+      setErrorMessage(t.errorMessage);
       return;
     }
     setErrorMessage('');
@@ -108,13 +105,13 @@ export const ScanPage: React.FC<ScanPageProps> = ({
 
     if (activeTab === 'message') {
       if (!messageText.trim()) {
-        setErrorMessage(isHi ? 'कृपया जांचने के लिए कोई संदेश लिखें।' : 'Please enter an investment message to check.');
+        setErrorMessage(t.errorNoMessage);
         return;
       }
       onStartAnalysis({ type: 'message', content: messageText.trim() });
     } else if (activeTab === 'screenshot') {
       if (!imagePreview) {
-        setErrorMessage(isHi ? 'कृपया कोई स्क्रीनशॉट अपलोड करें।' : 'Please upload a screenshot to inspect.');
+        setErrorMessage(t.errorNoScreenshot);
         return;
       }
       onStartAnalysis({
@@ -124,13 +121,13 @@ export const ScanPage: React.FC<ScanPageProps> = ({
       });
     } else if (activeTab === 'url') {
       if (!linkUrl.trim()) {
-        setErrorMessage(isHi ? 'कृपया वेबसाइट लिंक दर्ज करें।' : 'Please enter a website link to check.');
+        setErrorMessage(t.errorNoLink);
         return;
       }
       onStartAnalysis({ type: 'url', content: linkUrl.trim() });
     } else if (activeTab === 'broker') {
       if (!brokerName.trim() && !regNumber.trim()) {
-        setErrorMessage(isHi ? 'कृपया संस्था या रजिस्ट्रेशन नंबर लिखें।' : 'Please enter an entity name or registration number.');
+        setErrorMessage(t.errorNoEntity);
         return;
       }
       onStartAnalysis({
@@ -169,12 +166,10 @@ export const ScanPage: React.FC<ScanPageProps> = ({
       {/* Central Clean Header (Section 4) */}
       <div className="text-center space-y-2">
         <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold text-[#111111] tracking-tight">
-          SCAN
+          {t.pageTitle}
         </h1>
         <p className="font-sans text-sm sm:text-base text-[#444748] max-w-lg mx-auto leading-relaxed">
-          {isHi
-            ? 'कार्रवाई करने या पैसे भेजने से पहले किसी भी संदिग्ध निवेश संदेश, स्क्रीनशॉट या लिंक की जांच करें।'
-            : 'Check a suspicious investment message, screenshot or link before you act.'}
+          {t.pageSubtitle}
         </p>
       </div>
 
@@ -193,7 +188,7 @@ export const ScanPage: React.FC<ScanPageProps> = ({
                 : 'text-[#66645E] hover:text-[#111111]'
             }`}
           >
-            {isHi ? 'संदेश (Message)' : 'Message'}
+            {t.tabMessage}
           </button>
 
           <button
@@ -207,7 +202,7 @@ export const ScanPage: React.FC<ScanPageProps> = ({
                 : 'text-[#66645E] hover:text-[#111111]'
             }`}
           >
-            {isHi ? 'स्क्रीनशॉट' : 'Screenshot'}
+            {t.tabScreenshot}
           </button>
 
           <button
@@ -221,7 +216,7 @@ export const ScanPage: React.FC<ScanPageProps> = ({
                 : 'text-[#66645E] hover:text-[#111111]'
             }`}
           >
-            {isHi ? 'लिंक (Link)' : 'Link'}
+            {t.tabLink}
           </button>
 
           <button
@@ -235,7 +230,7 @@ export const ScanPage: React.FC<ScanPageProps> = ({
                 : 'text-[#66645E] hover:text-[#111111]'
             }`}
           >
-            {isHi ? 'संस्था (Entity)' : 'Entity'}
+            {t.tabEntity}
           </button>
         </div>
 
@@ -260,14 +255,14 @@ export const ScanPage: React.FC<ScanPageProps> = ({
         {activeTab === 'message' && (
           <div className="space-y-3">
             <div className="flex items-center justify-between text-xs text-[#66645E]">
-              <span>Paste WhatsApp, Telegram, SMS, or email claim:</span>
+              <span>{t.msgLabel}</span>
               <button
                 type="button"
                 onClick={handlePasteClipboard}
                 className="hover:text-[#111111] flex items-center gap-1 font-mono text-[11px]"
               >
                 <Clipboard className="w-3.5 h-3.5" />
-                <span>Paste</span>
+                <span>{t.pasteBtn}</span>
               </button>
             </div>
 
@@ -278,8 +273,7 @@ export const ScanPage: React.FC<ScanPageProps> = ({
                 setMessageText(e.target.value);
                 checkSensitiveData(e.target.value);
               }}
-              placeholder={`Paste suspicious message here...
-Example: "Guaranteed 40% returns in 7 days! Only 10 spots left. Transfer to coordinator via UPI: abcwealth@okaxis"`}
+              placeholder={t.msgPlaceholder}
               className="w-full p-4 rounded-[4px] border border-[#E5E4DE] bg-[#FCF9F8] text-sm font-sans focus:outline-none focus:border-[#111111] text-[#111111] leading-relaxed"
             />
           </div>
@@ -302,16 +296,16 @@ Example: "Guaranteed 40% returns in 7 days! Only 10 spots left. Transfer to coor
                 />
                 <Upload className="w-8 h-8 mx-auto text-[#66645E]" />
                 <p className="font-serif text-base font-semibold text-[#111111]">
-                  Click or drag screenshot here
+                  {t.screenshotDropTitle}
                 </p>
                 <p className="text-xs text-[#66645E] font-mono">
-                  PNG, JPG, or WEBP. Uploaded images are processed in-memory and not stored.
+                  {t.screenshotDropSub}
                 </p>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs text-[#66645E]">
-                  <span>Uploaded Screenshot:</span>
+                  <span>{t.screenshotUploaded}</span>
                   <button
                     onClick={() => {
                       setImagePreview(null);
@@ -320,7 +314,7 @@ Example: "Guaranteed 40% returns in 7 days! Only 10 spots left. Transfer to coor
                     }}
                     className="text-[#991B1B] hover:underline"
                   >
-                    Remove Image
+                    {t.removeImage}
                   </button>
                 </div>
 
@@ -334,14 +328,14 @@ Example: "Guaranteed 40% returns in 7 days! Only 10 spots left. Transfer to coor
 
                 <div>
                   <div className="flex items-center justify-between text-[11px] font-mono text-[#66645E] mb-1">
-                    <span>Extracted Text (OCR):</span>
-                    {isReadingOcr && <span className="animate-pulse">Reading text...</span>}
+                    <span>{t.ocrLabel}</span>
+                    {isReadingOcr && <span className="animate-pulse">{t.ocrReading}</span>}
                   </div>
                   <textarea
                     rows={3}
                     value={extractedOcrText}
                     onChange={(e) => setExtractedOcrText(e.target.value)}
-                    placeholder="Extracted text will appear here..."
+                    placeholder={t.ocrPlaceholder}
                     className="w-full p-2.5 rounded border border-[#E5E4DE] bg-[#FCF9F8] text-xs font-mono text-[#111111] focus:outline-none focus:border-[#111111]"
                   />
                 </div>
@@ -354,7 +348,7 @@ Example: "Guaranteed 40% returns in 7 days! Only 10 spots left. Transfer to coor
         {activeTab === 'url' && (
           <div className="space-y-3">
             <label className="block text-xs text-[#66645E]">
-              Enter suspicious investment website, link, or broker portal:
+              {t.linkLabel}
             </label>
             <div className="flex items-center border border-[#E5E4DE] rounded-[4px] bg-[#FCF9F8] px-3">
               <LinkIcon className="w-4 h-4 text-[#66645E] shrink-0" />
@@ -374,26 +368,26 @@ Example: "Guaranteed 40% returns in 7 days! Only 10 spots left. Transfer to coor
           <div className="space-y-4">
             <div>
               <label className="block text-xs text-[#66645E] mb-1">
-                Claimed Organization or Advisor Name:
+                {t.entityNameLabel}
               </label>
               <input
                 type="text"
                 value={brokerName}
                 onChange={(e) => setBrokerName(e.target.value)}
-                placeholder="e.g. Apex Wealth Advisors or Zerodha"
+                placeholder={t.entityNamePlaceholder}
                 className="w-full p-3 rounded-[4px] border border-[#E5E4DE] bg-[#FCF9F8] text-sm font-sans focus:outline-none focus:border-[#111111] text-[#111111]"
               />
             </div>
 
             <div>
               <label className="block text-xs text-[#66645E] mb-1">
-                Registration Number (Optional):
+                {t.entityRegLabel}
               </label>
               <input
                 type="text"
                 value={regNumber}
                 onChange={(e) => setRegNumber(e.target.value)}
-                placeholder="e.g. INZ000293433 or INA000123456"
+                placeholder={t.entityRegPlaceholder}
                 className="w-full p-3 rounded-[4px] border border-[#E5E4DE] bg-[#FCF9F8] text-sm font-mono focus:outline-none focus:border-[#111111] text-[#111111]"
               />
             </div>
@@ -406,19 +400,19 @@ Example: "Guaranteed 40% returns in 7 days! Only 10 spots left. Transfer to coor
             onClick={handleAnalyze}
             className="w-full py-3.5 px-6 rounded-[2px] bg-[#111111] text-white text-xs font-mono font-bold uppercase tracking-wider hover:bg-[#2A2A28] transition-colors shadow-sm"
           >
-            {isHi ? 'विश्लेषण करें (Analyze)' : 'Analyze Claim'}
+            {t.analyzeBtn}
           </button>
         </div>
 
         {/* Quiet Reassuring Notice */}
         <p className="text-[11px] text-[#66645E] text-center font-sans">
-          VeriVest identifies warning signs and verification gaps. It does not provide financial or trading advice.
+          {t.privacyNotice}
         </p>
       </div>
 
       {/* Quiet Quick Try Examples */}
       <div className="pt-2 text-center space-y-2">
-        <span className="text-xs text-[#66645E]">Or try a realistic sample claim:</span>
+        <span className="text-xs text-[#66645E]">{t.trySampleLabel}</span>
         <div className="flex flex-wrap items-center justify-center gap-2">
           {demoArchetypes.map((demo) => (
             <button
