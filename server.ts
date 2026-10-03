@@ -16,18 +16,8 @@ if (!process.env.TSX_SPAWNED && !process.execArgv.some((a) => a.includes('tsx'))
   await new Promise(() => {});
 }
 
-const analyzeRoutes = (await import('./backend/routes/analyzeRoutes.js')).default;
-const { errorHandler } = await import('./backend/middleware/errorHandler.js');
-
-const app = express();
+const app = (await import('./backend/app.js')).default;
 const PORT = Number(process.env.PORT) || 3000;
-
-app.use(express.json({ limit: '20mb' }));
-app.use(express.urlencoded({ extended: true }));
-
-app.use('/api', analyzeRoutes);
-
-app.use(errorHandler);
 
 async function startServer() {
   const isProd = process.env.NODE_ENV === 'production';

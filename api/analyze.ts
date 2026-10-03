@@ -1,0 +1,11 @@
+import type { Request, Response } from 'express';
+import app from '../backend/app.js';
+
+export default function handler(req: Request, res: Response) {
+  if (!req.url || req.url === '/' || req.url === '') {
+    req.url = '/api/analyze';
+  } else if (!req.url.startsWith('/api')) {
+    req.url = `/api${req.url.startsWith('/') ? '' : '/'}${req.url}`;
+  }
+  return app(req, res);
+}
