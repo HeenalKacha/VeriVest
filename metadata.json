@@ -1,0 +1,8 @@
+{
+  "name": "Remix VeriVest",
+  "description": "Imported from GitHub: krishathakkar24/VeriVest",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

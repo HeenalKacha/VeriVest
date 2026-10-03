@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['id', 'name', 'email', 'gender', 'createdAt'])
+        && data.id is string && data.id.size() <= 128
+        && data.name is string && data.name.size() <= 100
+        && data.email is string && data.email.size() <= 150
+        && data.gender in ['Male', 'Female']
+        && (!('age' in data) || data.age is number)
+        && (!('mobile' in data) || (data.mobile is string && data.mobile.size() <= 30))
+        && (!('language' in data) || data.language in ['en', 'hi', 'mr'])
+        && (!('isVerified' in data) || data.isVerified is bool)
+        && data.createdAt is string;
+    }
+
+    function isValidScanRecord(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'type', 'riskLevel', 'score', 'createdAt'])
+        && data.id is string && data.id.size() <= 128
+        && data.userId == userId
+        && data.type in ['message', 'url', 'screenshot', 'broker', 'tip']
+        && data.riskLevel in ['LOW CONCERN', 'REQUIRES CAUTION', 'HIGH CONCERN']
+        && data.score is number
+        && data.createdAt is string
+        && (!('summary' in data) || (data.summary is string && data.summary.size() <= 2000))
+        && (!('rawInput' in data) || (data.rawInput is string && data.rawInput.size() <= 5000));
+    }
+
+    function isValidProgressRecord(data, userId) {
+      return data.keys().hasAll(['userId', 'totalQuestions', 'completedQuestions', 'correctAnswers', 'score', 'isCompleted'])
+        && data.userId == userId
+        && data.totalQuestions is number
+        && data.completedQuestions is number
+        && data.correctAnswers is number
+        && data.score is number
+        && data.isCompleted is bool
+        && (!('badgeTitle' in data) || (data.badgeTitle is string && data.badgeTitle.size() <= 100))
+        && (!('completedAt' in data) || data.completedAt is string);
+    }
+
+    // User profile document
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow create: if isValidId(userId) && isOwner(userId) && isValidUserProfile(incoming()) && incoming().id == userId;
+      allow update: if isValidId(userId) && isOwner(userId) && isValidUserProfile(incoming()) && incoming().id == userId;
+      allow delete: if isValidId(userId) && isOwner(userId);
+
+      // Scans subcollection
+      match /scans/{scanId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isValidId(userId) && isOwner(userId) && isValidScanRecord(incoming(), userId) && incoming().userId == userId;
+        allow delete: if isValidId(userId) && isOwner(userId);
+      }
+
+      // Progress subcollection / document
+      match /progress/{progressId} {
+        allow get: if isOwner(userId);
+        allow create, update: if isValidId(userId) && isOwner(userId) && isValidProgressRecord(incoming(), userId) && incoming().userId == userId;
+      }
+    }
+  }
+}

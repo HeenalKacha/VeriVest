@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with personal identity details, preferences, and verified status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 150 },
+        "mobile": { "type": "string", "maxLength": 30 },
+        "age": { "type": "integer" },
+        "gender": { "type": "string", "enum": ["Male", "Female"] },
+        "language": { "type": "string", "enum": ["en", "hi", "mr"] },
+        "isVerified": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "gender", "createdAt"]
+    },
+    "ScanRecord": {
+      "title": "ScanRecord",
+      "description": "Saved analysis results of scanned messages, links, brokers, or screenshots",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["message", "url", "screenshot", "broker", "tip"] },
+        "timestamp": { "type": "string" },
+        "riskLevel": { "type": "string", "enum": ["LOW CONCERN", "REQUIRES CAUTION", "HIGH CONCERN"] },
+        "score": { "type": "integer" },
+        "confidenceScore": { "type": "integer" },
+        "summary": { "type": "string", "maxLength": 2000 },
+        "rawInput": { "type": "string", "maxLength": 5000 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "type", "riskLevel", "score", "createdAt"]
+    },
+    "SimulatorProgressRecord": {
+      "title": "SimulatorProgressRecord",
+      "description": "Progress and badge status in the investor safety simulator",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "totalQuestions": { "type": "integer" },
+        "completedQuestions": { "type": "integer" },
+        "correctAnswers": { "type": "integer" },
+        "score": { "type": "integer" },
+        "isCompleted": { "type": "boolean" },
+        "badgeTitle": { "type": "string", "maxLength": 100 },
+        "completedAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "totalQuestions", "completedQuestions", "correctAnswers", "score", "isCompleted"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Authenticated user profile document, private to the owner"
+    },
+    "/users/{userId}/scans/{scanId}": {
+      "schema": { "$ref": "#/entities/ScanRecord" },
+      "description": "User's private scan history records"
+    },
+    "/users/{userId}/progress/simulator": {
+      "schema": { "$ref": "#/entities/SimulatorProgressRecord" },
+      "description": "User's simulator training and achievement status"
+    }
+  }
+}

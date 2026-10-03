@@ -1,0 +1,123 @@
+[
+  {
+    "id": "guaranteed-returns",
+    "category": "guaranteed returns",
+    "pattern": "guaranteed|risk[- ]free|fixed return|30%|40%|50%|100% return|pocket|payback|returns in 7 days|guaranteed profit|गारंटी|पक्का|हमखास",
+    "description": "Promises of guaranteed, fixed or unrealistic profits are a classic scam indicator.",
+    "severity": "critical",
+    "languages": ["en", "hi", "mr"],
+    "examples": ["Guaranteed 40% returns in 7 days", "Risk-free profit return in 30 days"],
+    "enabled": true,
+    "weight": 26
+  },
+  {
+    "id": "urgency-pressure",
+    "category": "urgency",
+    "pattern": "only .* seats|only .* slots|today|urgent|act now|limited time|expires|hurry|don’t miss|right now|final call|तुरंत|आज|सीमित|अभी|घाई",
+    "description": "Urgency and scarcity pressure reduce the time available for independent verification.",
+    "severity": "high",
+    "languages": ["en", "hi", "mr"],
+    "examples": ["Only 2 seats left today", "Act now before it closes"],
+    "enabled": true,
+    "weight": 18
+  },
+  {
+    "id": "personal-upi-payment",
+    "category": "payment pressure",
+    "pattern": "upi|@okaxis|@paytm|@ybl|@icici|personal account|bank transfer|send money|pay to|pay via|नकद|UPI|व्यक्तिगत खाता|पैसे भेजें",
+    "description": "Requests to pay into individual UPI handles or personal accounts instead of registered business accounts are risky.",
+    "severity": "critical",
+    "languages": ["en", "hi", "mr"],
+    "examples": ["Send ₹5000 to abcwealth@okaxis", "Deposit in personal account"],
+    "enabled": true,
+    "weight": 24
+  },
+  {
+    "id": "remote-access-request",
+    "category": "remote access",
+    "pattern": "anydesk|teamviewer|remotedesktop|screen share|install app|join session|allow access|रिमोट|स्क्रीन शेयर|ऐप install",
+    "description": "Requests to install remote-access applications can expose banking credentials and OTPs.",
+    "severity": "critical",
+    "languages": ["en", "hi", "mr"],
+    "examples": ["Install AnyDesk and we will assist", "Share your screen"],
+    "enabled": true,
+    "weight": 28
+  },
+  {
+    "id": "otp-password-request",
+    "category": "credential request",
+    "pattern": "otp|password|pin|verify code|bank login|share code|otp number|कोड|पासवर्ड|ओटीपी|पिन",
+    "description": "Asking for OTPs, passwords, or login codes is a strong fraud signal.",
+    "severity": "critical",
+    "languages": ["en", "hi", "mr"],
+    "examples": ["Send OTP to verify your account", "Login code required"],
+    "enabled": true,
+    "weight": 30
+  },
+  {
+    "id": "fake-regulatory-claim",
+    "category": "fake regulatory claims",
+    "pattern": "sebi|rbi|nse|bse|register|licensed|approved|regulated|government|authority|मामला|रजिस्टर|अधिकृत|सेबी",
+    "description": "Claims of regulator approval or licensing must be checked against official data; unverified authority claims are suspicious.",
+    "severity": "high",
+    "languages": ["en", "hi", "mr"],
+    "examples": ["SEBI approved and RBI backed", "Government-registered"],
+    "enabled": true,
+    "weight": 18
+  },
+  {
+    "id": "insider-tip-claim",
+    "category": "insider tip manipulation",
+    "pattern": "insider|inside info|secret tip|vip group|exclusive opportunity|board meeting|multibagger|गुप्त खबर|अंदर की खबर|VIP ग्रुप",
+    "description": "Private insider or exclusive invite claims often hide pump-and-dump coordinated manipulation.",
+    "severity": "high",
+    "languages": ["en", "hi", "mr"],
+    "examples": ["Exclusive insider signal", "Private trading group"],
+    "enabled": true,
+    "weight": 19
+  },
+  {
+    "id": "pump-and-dump-language",
+    "category": "pump and dump",
+    "pattern": "multibagger|moonshot|breakout|next rally|sudden jump|buy now before it explodes|rocket|explosive gains|मल्टीबैगर|उत्तेजनापूर्ण|अचानक उधार",
+    "description": "Manipulative hype language trying to push fast purchase decisions is a known market manipulation pattern.",
+    "severity": "warning",
+    "languages": ["en", "hi", "mr"],
+    "examples": ["This stock will double in 2 days", "Buy before it moons"],
+    "enabled": true,
+    "weight": 15
+  },
+  {
+    "id": "private-group-manipulation",
+    "category": "suspicious communication channels",
+    "pattern": "join private telegram|whatsapp group|dm admin|invite only|private channel|telegram group|व्हाट्सएप|टेलीग्राम",
+    "description": "Moving the discussion to private messaging reduces transparency and evidence trails.",
+    "severity": "warning",
+    "languages": ["en", "hi", "mr"],
+    "examples": ["Join the private Telegram group", "DM the admin for details"],
+    "enabled": true,
+    "weight": 12
+  },
+  {
+    "id": "fake-investment-opportunity",
+    "category": "fake investment opportunity",
+    "pattern": "double your money|earn passive income|zero investment|partnership|prelaunch token|investment opportunity|returns on investment|दो गुना|कम लागत|गुना लाभ",
+    "description": "Referral-driven offers that promise easy gains with little effort are often fraudulent.",
+    "severity": "warning",
+    "languages": ["en", "hi", "mr"],
+    "examples": ["Double your money in a week", "Easy passive investment offer"],
+    "enabled": true,
+    "weight": 13
+  },
+  {
+    "id": "phishing-link",
+    "category": "phishing",
+    "pattern": "login.*(portal|trade|account)|verify.*account|http://|bit.ly|tinyurl|redirect|check login|लॉगिन|अकाउंट सत्यापन",
+    "description": "Links that demand account verification or redirect to unfamiliar portals can be phishing attempts.",
+    "severity": "high",
+    "languages": ["en", "hi", "mr"],
+    "examples": ["Click to verify account", "Login through this suspicious portal"],
+    "enabled": true,
+    "weight": 17
+  }
+]

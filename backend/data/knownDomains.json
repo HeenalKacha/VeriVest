@@ -1,0 +1,34 @@
+[
+  {
+    "domain": "sebi.gov.in",
+    "category": "regulator",
+    "entity": "Securities and Exchange Board of India",
+    "status": "VERIFIED",
+    "source": "https://www.sebi.gov.in/",
+    "lastChecked": "2026-10-02"
+  },
+  {
+    "domain": "rbi.org.in",
+    "category": "regulator",
+    "entity": "Reserve Bank of India",
+    "status": "VERIFIED",
+    "source": "https://rbi.org.in/",
+    "lastChecked": "2026-10-02"
+  },
+  {
+    "domain": "nseindia.com",
+    "category": "exchange",
+    "entity": "NSE India",
+    "status": "VERIFIED",
+    "source": "https://www.nseindia.com/",
+    "lastChecked": "2026-10-02"
+  },
+  {
+    "domain": "bseindia.com",
+    "category": "exchange",
+    "entity": "BSE India",
+    "status": "VERIFIED",
+    "source": "https://www.bseindia.com/",
+    "lastChecked": "2026-10-02"
+  }
+]
