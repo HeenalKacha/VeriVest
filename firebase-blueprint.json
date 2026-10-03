@@ -2,70 +2,61 @@
   "entities": {
     "UserProfile": {
       "title": "UserProfile",
-      "description": "User profile with personal identity details, preferences, and verified status",
+      "description": "User profile containing full name, contact, email, age, gender, and audit timestamps",
       "type": "object",
       "properties": {
-        "id": { "type": "string", "maxLength": 128 },
-        "name": { "type": "string", "maxLength": 100 },
+        "fullName": { "type": "string", "maxLength": 100 },
+        "contact": { "type": "string", "maxLength": 30 },
         "email": { "type": "string", "maxLength": 150 },
-        "mobile": { "type": "string", "maxLength": 30 },
         "age": { "type": "integer" },
         "gender": { "type": "string", "enum": ["Male", "Female"] },
-        "language": { "type": "string", "enum": ["en", "hi", "mr"] },
-        "isVerified": { "type": "boolean" },
         "createdAt": { "type": "string" },
         "updatedAt": { "type": "string" }
       },
-      "required": ["id", "name", "email", "gender", "createdAt"]
+      "required": ["fullName", "email", "gender", "createdAt"]
     },
-    "ScanRecord": {
-      "title": "ScanRecord",
-      "description": "Saved analysis results of scanned messages, links, brokers, or screenshots",
+    "LearningProgress": {
+      "title": "LearningProgress",
+      "description": "Investor safety simulator progress and badge status",
       "type": "object",
       "properties": {
-        "id": { "type": "string", "maxLength": 128 },
-        "userId": { "type": "string", "maxLength": 128 },
-        "type": { "type": "string", "enum": ["message", "url", "screenshot", "broker", "tip"] },
-        "timestamp": { "type": "string" },
-        "riskLevel": { "type": "string", "enum": ["LOW CONCERN", "REQUIRES CAUTION", "HIGH CONCERN"] },
-        "score": { "type": "integer" },
-        "confidenceScore": { "type": "integer" },
-        "summary": { "type": "string", "maxLength": 2000 },
-        "rawInput": { "type": "string", "maxLength": 5000 },
-        "createdAt": { "type": "string" }
-      },
-      "required": ["id", "userId", "type", "riskLevel", "score", "createdAt"]
-    },
-    "SimulatorProgressRecord": {
-      "title": "SimulatorProgressRecord",
-      "description": "Progress and badge status in the investor safety simulator",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string", "maxLength": 128 },
-        "totalQuestions": { "type": "integer" },
-        "completedQuestions": { "type": "integer" },
+        "points": { "type": "integer" },
         "correctAnswers": { "type": "integer" },
-        "score": { "type": "integer" },
-        "isCompleted": { "type": "boolean" },
-        "badgeTitle": { "type": "string", "maxLength": 100 },
-        "completedAt": { "type": "string" },
+        "completedQuestions": { "type": "integer" },
+        "totalQuestions": { "type": "integer" },
+        "completed": { "type": "boolean" },
+        "badgeEarned": { "type": "boolean" },
         "updatedAt": { "type": "string" }
       },
-      "required": ["userId", "totalQuestions", "completedQuestions", "correctAnswers", "score", "isCompleted"]
+      "required": ["points", "correctAnswers", "completedQuestions", "totalQuestions", "completed", "badgeEarned"]
+    },
+    "ScanHistoryRecord": {
+      "title": "ScanHistoryRecord",
+      "description": "Stored historical scan record with risk assessment and indicators",
+      "type": "object",
+      "properties": {
+        "scanType": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string" },
+        "result": { "type": "string", "maxLength": 200 },
+        "riskLevel": { "type": "string", "maxLength": 50 },
+        "riskIndicators": { "type": "array" },
+        "summary": { "type": "string", "maxLength": 10000 }
+      },
+      "required": ["scanType", "createdAt", "result", "riskLevel", "summary"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
-      "description": "Authenticated user profile document, private to the owner"
+      "description": "Authenticated user profile document"
     },
-    "/users/{userId}/scans/{scanId}": {
-      "schema": { "$ref": "#/entities/ScanRecord" },
-      "description": "User's private scan history records"
+    "/users/{userId}/learning/progress": {
+      "schema": { "$ref": "#/entities/LearningProgress" },
+      "description": "User learning and simulator progress record"
     },
-    "/users/{userId}/progress/simulator": {
-      "schema": { "$ref": "#/entities/SimulatorProgressRecord" },
-      "description": "User's simulator training and achievement status"
+    "/users/{userId}/scanHistory/{scanId}": {
+      "schema": { "$ref": "#/entities/ScanHistoryRecord" },
+      "description": "User historical scan documents"
     }
   }
 }

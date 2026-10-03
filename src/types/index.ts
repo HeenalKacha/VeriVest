@@ -124,24 +124,42 @@ export interface AnalysisResult {
 export type Gender = 'Male' | 'Female';
 
 export interface SimulatorProgress {
-  totalQuestions: number;
-  completedQuestions: number;
+  points: number;
   correctAnswers: number;
-  score: number;
-  isCompleted: boolean;
+  completedQuestions: number;
+  totalQuestions: number;
+  completed: boolean;
+  badgeEarned: boolean;
+  updatedAt: string;
+  score: number; // backward compatibility
+  isCompleted: boolean; // backward compatibility
   completedAt?: string;
   badgeTitle?: string;
 }
 
 export interface User {
-  id: string;
-  name: string;
-  mobile: string;
+  id: string; // Firebase UID
+  fullName: string;
+  name?: string; // alias for UI compatibility
+  contact: string;
+  mobile?: string; // alias for UI compatibility
   email: string;
   age: number | string;
   gender: Gender;
-  language: Language;
+  language?: Language;
   createdAt: string;
+  updatedAt?: string;
+}
+
+export interface FirestoreScanRecord {
+  scanId: string;
+  scanType: string;
+  createdAt: string;
+  result: string;
+  riskLevel: string;
+  riskIndicators: string[];
+  summary: string;
+  dossier?: AnalysisResult;
 }
 
 export interface EducationGuide {

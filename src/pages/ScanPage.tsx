@@ -23,6 +23,8 @@ interface ScanPageProps {
     brokerName?: string;
     regNumber?: string;
     imageBase64?: string;
+    imageBuffer?: string;
+    mimeType?: string;
   }) => void;
   onNavigateHowItWorks?: () => void;
 }
@@ -118,6 +120,8 @@ export const ScanPage: React.FC<ScanPageProps> = ({
         type: 'screenshot',
         content: extractedOcrText || (selectedFile ? `Screenshot: ${selectedFile.name}` : 'Uploaded image'),
         imageBase64: imagePreview,
+        imageBuffer: imagePreview,
+        mimeType: selectedFile?.type || 'image/png',
       });
     } else if (activeTab === 'url') {
       if (!linkUrl.trim()) {

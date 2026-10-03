@@ -20,7 +20,7 @@ import { HowItWorksSimple } from '../howitworks/HowItWorksSimple';
 import { BeforeYouPayCompact } from '../learn/BeforeYouPayCompact';
 import { educationGuides } from '../../data/educationData';
 import { storageService } from '../../services/storageService';
-import { saveUserProfileToFirestore } from '../../services/firebase';
+import { updateUserProfile, deleteScanHistoryItem } from '../../services/firebase';
 
 // EXACT 4 SIDEBAR SECTIONS FROM USER SPECIFICATION:
 // 1. Profile
@@ -72,11 +72,24 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
 
   // Profile Edit State
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [editName, setEditName] = useState(user?.name || 'Rohan Sharma');
-  const [editMobile, setEditMobile] = useState(user?.mobile || '+91 98765 43210');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [editName, setEditName] = useState(user?.fullName || user?.name || 'Rohan Sharma');
+  const [editMobile, setEditMobile] = useState(user?.contact || user?.mobile || '+91 98765 43210');
   const [editEmail, setEditEmail] = useState(user?.email || 'rohan.sharma@investor.in');
   const [editAge, setEditAge] = useState<number | string>(user?.age || 32);
   const [editGender, setEditGender] = useState<Gender>(user?.gender || 'Male');
+
+  // Sync edit form with user changes
+  React.useEffect(() => {
+    if (user) {
+      setEditName(user.fullName || user.name || 'Rohan Sharma');
+      setEditMobile(user.contact || user.mobile || '+91 98765 43210');
+      setEditEmail(user.email || '');
+      setEditAge(user.age || 32);
+      setEditGender(user.gender || 'Male');
+    }
+  }, [user]);
 
   if (!isOpen) return null;
 
@@ -94,30 +107,53 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
     );
   });
 
-  const handleDeleteHistoryItem = (e: React.MouseEvent, id: string) => {
+  const handleDeleteHistoryItem = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     storageService.deleteScan(id);
+    if (user?.id) {
+      try {
+        await deleteScanHistoryItem(user.id, id);
+      } catch (err) {
+        console.warn('Failed to delete scan from Firestore:', err);
+      }
+    }
     onRefreshHistory();
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
+    setIsSavingProfile(true);
+    setProfileError(null);
     const updated: User = {
       id: user?.id || 'usr-8921',
-      name: editName.trim() || 'Rohan Sharma',
+      fullName: editName.trim() || 'Verified Investor',
+      name: editName.trim() || 'Verified Investor',
+      contact: editMobile.trim() || '+91 98765 43210',
       mobile: editMobile.trim() || '+91 98765 43210',
-      email: editEmail.trim() || 'rohan.sharma@investor.in',
-      age: editAge || 32,
+      email: user?.email || editEmail.trim() || 'investor@verivest.org',
+      age: Number(editAge) || 32,
       gender: editGender,
       language: currentLanguage,
-      createdAt: user?.createdAt || 'Oct 2026',
+      createdAt: user?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
+
+    // Reflect immediately in local application state
     storageService.setUser(updated);
-    saveUserProfileToFirestore(updated).catch((err) =>
-      console.warn('Background Firestore profile save failed:', err)
-    );
     if (onUpdateUser) {
       onUpdateUser(updated);
     }
+
+    // Persist to Cloud Firestore
+    if (user?.id) {
+      try {
+        await updateUserProfile(user.id, updated);
+      } catch (err) {
+        console.warn('Firestore profile save failed:', err);
+        setProfileError('Unable to save your progress to cloud. Changes kept locally.');
+      }
+    }
+
+    setIsSavingProfile(false);
     setIsEditingProfile(false);
   };
 
@@ -469,10 +505,17 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                         </div>
                       </div>
 
+                      {profileError && (
+                        <div className="p-2.5 rounded bg-[#FEE2E2] border border-[#991B1B] text-[#991B1B] text-[11px] font-mono">
+                          {profileError}
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#E5E4DE]">
                         <button
                           type="button"
                           onClick={() => setIsEditingProfile(false)}
+                          disabled={isSavingProfile}
                           className="px-3 py-1.5 rounded text-xs font-mono text-[#66645E] hover:text-[#111111]"
                         >
                           Cancel
@@ -480,10 +523,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                         <button
                           type="button"
                           onClick={handleSaveProfile}
-                          className="px-4 py-2 rounded bg-[#111111] text-white text-xs font-mono font-bold uppercase hover:bg-[#2A2A28] flex items-center gap-1.5"
+                          disabled={isSavingProfile}
+                          className="px-4 py-2 rounded bg-[#111111] text-white text-xs font-mono font-bold uppercase hover:bg-[#2A2A28] flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
                         >
                           <Check className="w-3.5 h-3.5" />
-                          <span>Save Changes</span>
+                          <span>{isSavingProfile ? 'Saving...' : 'Save Changes'}</span>
                         </button>
                       </div>
                     </div>

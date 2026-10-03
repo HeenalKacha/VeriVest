@@ -30,5 +30,53 @@
     "status": "VERIFIED",
     "officialSource": "https://www.bseindia.com/",
     "lastChecked": "2026-10-02"
+  },
+  {
+    "name": "Zerodha Broking Limited",
+    "registrationNumber": "INZ000293433",
+    "entityType": "broker",
+    "status": "VERIFIED",
+    "officialSource": "https://www.sebi.gov.in/sebiweb/other/OtherAction.do?doRecognisedFpi=yes&intmId=10",
+    "lastChecked": "2026-10-02"
+  },
+  {
+    "name": "HDFC Asset Management Company Limited",
+    "registrationNumber": "MF/044/00/6",
+    "entityType": "amc",
+    "status": "VERIFIED",
+    "officialSource": "https://www.sebi.gov.in/",
+    "lastChecked": "2026-10-02"
+  },
+  {
+    "name": "KFin Technologies Limited",
+    "registrationNumber": "INR000004058",
+    "entityType": "rta",
+    "status": "VERIFIED",
+    "officialSource": "https://www.sebi.gov.in/",
+    "lastChecked": "2026-10-02"
+  },
+  {
+    "name": "Groww (Nextbillion Technology Pvt Ltd)",
+    "registrationNumber": "INZ000301838",
+    "entityType": "broker",
+    "status": "VERIFIED",
+    "officialSource": "https://www.sebi.gov.in/",
+    "lastChecked": "2026-10-02"
+  },
+  {
+    "name": "Angel One Limited",
+    "registrationNumber": "INZ000161534",
+    "entityType": "broker",
+    "status": "VERIFIED",
+    "officialSource": "https://www.sebi.gov.in/",
+    "lastChecked": "2026-10-02"
+  },
+  {
+    "name": "ICICI Securities Limited",
+    "registrationNumber": "INZ000183631",
+    "entityType": "broker",
+    "status": "VERIFIED",
+    "officialSource": "https://www.sebi.gov.in/",
+    "lastChecked": "2026-10-02"
   }
 ]

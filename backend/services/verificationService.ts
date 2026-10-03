@@ -11,9 +11,15 @@ function loadJson<T>(fileName: string): T {
   return JSON.parse(fs.readFileSync(path.join(dataPath, fileName), 'utf8')) as T;
 }
 
-export async function verifyBroker({ name, registrationNumber }: { name?: string; registrationNumber?: string }): Promise<VerificationReport> {
-  const cleanName = (name ?? '').trim();
-  const cleanReg = (registrationNumber ?? '').trim();
+export async function verifyBroker({
+  name,
+  registrationNumber,
+}: {
+  name?: string;
+  registrationNumber?: string;
+}): Promise<VerificationReport> {
+  const cleanName = (name ?? '').trim().toLowerCase();
+  const cleanReg = (registrationNumber ?? '').trim().toLowerCase();
 
   if (!cleanName && !cleanReg) {
     return {
@@ -25,9 +31,14 @@ export async function verifyBroker({ name, registrationNumber }: { name?: string
   }
 
   const entities = loadJson<Array<{ name: string; registrationNumber: string; entityType: string; status: string; officialSource: string }>>('financialEntities.json');
-  const target = cleanReg
-    ? entities.find((entity) => entity.registrationNumber.toLowerCase() === cleanReg.toLowerCase() || entity.name.toLowerCase().includes(cleanName.toLowerCase()))
-    : entities.find((entity) => entity.name.toLowerCase().includes(cleanName.toLowerCase()));
+  const target = entities.find((entity) => {
+    const regMatch = cleanReg && entity.registrationNumber.toLowerCase() === cleanReg;
+    const nameMatch = cleanName && (entity.name.toLowerCase().includes(cleanName) || cleanName.includes(entity.name.toLowerCase()));
+    if (cleanReg && cleanName) return regMatch || nameMatch;
+    if (cleanReg) return regMatch;
+    if (cleanName) return nameMatch;
+    return false;
+  });
 
   if (target) {
     return {
@@ -50,10 +61,20 @@ export async function verifyBroker({ name, registrationNumber }: { name?: string
 
 export async function verifyDomain(url: string): Promise<VerificationReport> {
   try {
-    const parsed = new URL(url);
+    const trimmed = (url ?? '').trim();
+    if (!trimmed) {
+      return {
+        status: 'UNABLE_TO_VERIFY',
+        source: 'No URL provided',
+        summary: 'No domain or URL was provided.',
+        details: ['Empty submission.'],
+      };
+    }
+    const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    const parsed = new URL(withProtocol);
     const hostname = parsed.hostname.replace(/^www\./i, '').toLowerCase();
     const domains = loadJson<Array<{ domain: string; category: string; entity: string; status: string; source: string }>>('knownDomains.json');
-    const match = domains.find((item) => item.domain.toLowerCase() === hostname);
+    const match = domains.find((item) => item.domain.toLowerCase() === hostname || hostname.endsWith(`.${item.domain.toLowerCase()}`));
 
     if (match) {
       return {

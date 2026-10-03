@@ -9,24 +9,28 @@ import {
   Shield,
   HelpCircle,
 } from 'lucide-react';
-import { Language, EducationGuide } from '../types';
+import { Language, EducationGuide, SimulatorProgress } from '../types';
 import { scamScenarios } from '../data/scamSimulatorData';
 import { educationGuides } from '../data/educationData';
 import { GuideDetailModal } from '../components/modals/GuideDetailModal';
 import { storageService } from '../services/storageService';
-import { saveSimulatorProgressToFirestore } from '../services/firebase';
+import { updateLearningProgress } from '../services/firebase';
 import { translations } from '../i18n/translations';
 
 interface LearnSimulatorPageProps {
   currentLanguage: Language;
   onNavigateScan: () => void;
   onOpenProfile?: () => void;
+  progress?: SimulatorProgress;
+  onProgressUpdate?: (p: SimulatorProgress) => void;
 }
 
 export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
   currentLanguage,
   onNavigateScan,
   onOpenProfile,
+  progress,
+  onProgressUpdate,
 }) => {
   const [tab, setTab] = useState<'simulator' | 'guides'>('simulator');
   const [selectedGuide, setSelectedGuide] = useState<EducationGuide | null>(null);
@@ -35,11 +39,21 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
 
   // Simulator state
   const scenarioList = scamScenarios[currentLanguage] || scamScenarios.en;
-  const initialProg = storageService.getSimulatorProgress();
+  const initialProg = progress || storageService.getSimulatorProgress();
   const [scenarioIndex, setScenarioIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
-  const [score, setScore] = useState(initialProg?.correctAnswers || 0);
+  const [correctCount, setCorrectCount] = useState(initialProg?.correctAnswers || 0);
+  const [points, setPoints] = useState(initialProg?.points ?? (initialProg?.score || 0));
   const [attempted, setAttempted] = useState(initialProg?.completedQuestions || 0);
+
+  // Sync state if progress prop updates from cloud
+  React.useEffect(() => {
+    if (progress) {
+      setCorrectCount(progress.correctAnswers || 0);
+      setPoints(progress.points ?? (progress.score || 0));
+      setAttempted(progress.completedQuestions || 0);
+    }
+  }, [progress]);
 
   const currentScenario = scenarioList[scenarioIndex] || scenarioList[0];
   const chosenOption = currentScenario.options.find((o) => o.id === selectedOptionId);
@@ -51,26 +65,38 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
     setAttempted(newAttempted);
 
     const chosen = currentScenario.options.find((o) => o.id === optionId);
-    const newScore = chosen?.isSafe ? score + 1 : score;
-    if (chosen?.isSafe) {
-      setScore(newScore);
+    const isCorrect = Boolean(chosen?.isSafe);
+    const newCorrect = isCorrect ? correctCount + 1 : correctCount;
+    const newPoints = isCorrect ? points + 10 : points;
+
+    if (isCorrect) {
+      setCorrectCount(newCorrect);
+      setPoints(newPoints);
     }
 
     const isDone = newAttempted >= scenarioList.length;
-    const progressData = {
+    const progressData: SimulatorProgress = {
+      points: newPoints,
+      score: newPoints,
       totalQuestions: scenarioList.length,
       completedQuestions: newAttempted,
-      correctAnswers: newScore,
-      score: Math.round((newScore / scenarioList.length) * 100),
+      correctAnswers: newCorrect,
+      completed: isDone,
       isCompleted: isDone,
-      completedAt: isDone ? new Date().toLocaleDateString() : undefined,
+      badgeEarned: isDone,
       badgeTitle: 'Investor Safety Learner',
+      completedAt: isDone ? new Date().toLocaleDateString() : undefined,
+      updatedAt: new Date().toISOString(),
     };
+
     storageService.saveSimulatorProgress(progressData);
+    if (onProgressUpdate) {
+      onProgressUpdate(progressData);
+    }
 
     const currentUser = storageService.getUser();
     if (currentUser?.id) {
-      saveSimulatorProgressToFirestore(currentUser.id, progressData).catch((err) =>
+      updateLearningProgress(currentUser.id, progressData).catch((err) =>
         console.warn('Background Firestore progress save failed:', err)
       );
     }
@@ -106,7 +132,7 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-[#D97706]" />
-            <span>{isHi ? t.tabSimulator : t.tabSimulator}</span>
+            <span>{t.tabSimulator}</span>
           </button>
 
           <button
@@ -138,7 +164,7 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
                 </h2>
               </div>
               <div className="text-xs font-mono text-[#66645E]">
-                {t.safeChoices} <strong className="text-[#2D6A4F]">{score} / {attempted}</strong>
+                {t.safeChoices} <strong className="text-[#2D6A4F]">{correctCount} / {attempted}</strong> ({points} pts)
               </div>
             </div>
 
@@ -155,7 +181,7 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
             {/* Interactive Question */}
             <div>
               <h3 className="font-serif text-base sm:text-lg font-bold text-[#111111] mb-3">
-                {isHi ? t.whatWouldYouDo : t.whatWouldYouDo}
+                {t.whatWouldYouDo}
               </h3>
 
               <div className="space-y-2.5">
@@ -229,14 +255,14 @@ export const LearnSimulatorPage: React.FC<LearnSimulatorPageProps> = ({
                         <span>{t.achievement}</span>
                       </span>
                       <span className="text-xs bg-[#2D6A4F] text-white px-2 py-0.5 rounded font-bold">
-                        {Math.round((score / scenarioList.length) * 100)} Points
+                        {points} Points
                       </span>
                     </div>
                     <p>
                       {t.achievementBody
                         .replace('{total}', String(scenarioList.length))
                         .replace('{total}', String(scenarioList.length))
-                        .replace('{score}', String(score))}
+                        .replace('{score}', String(points))}
                     </p>
                     {onOpenProfile && (
                       <button

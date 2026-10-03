@@ -1,10 +1,12 @@
 {
-  "apiKey": "demo-api-key",
-  "authDomain": "demo-project.firebaseapp.com",
-  "projectId": "demo-project",
-  "storageBucket": "demo-project.appspot.com",
-  "messagingSenderId": "1234567890",
-  "appId": "1:1234567890:web:abcdef123456",
-  "measurementId": "G-ABCDE12345",
-  "firestoreDatabaseId": ""
+  "projectId": "waking-radio-h83d0",
+  "appId": "1:236764208444:web:fdbc4dca0c282c6fed9239",
+  "apiKey": "AIzaSyD944TVaVb59nALGH9mZisx1W2DN8lOcHs",
+  "authDomain": "waking-radio-h83d0.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-verivest-4249d591-eebc-4867-879a-ee5077f119e6",
+  "storageBucket": "waking-radio-h83d0.firebasestorage.app",
+  "messagingSenderId": "236764208444",
+  "measurementId": "",
+  "oAuthClientId": "236764208444-5n3rgbmclivg56r3l5cnf1e8tr2jsksd.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
 }

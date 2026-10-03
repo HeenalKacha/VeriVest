@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Language, User, AnalysisResult } from './types';
-import { storageService } from './services/storageService';
+import { Language, User, AnalysisResult, SimulatorProgress } from './types';
+import { storageService, DEFAULT_SIMULATOR_PROGRESS } from './services/storageService';
 import { analyzerService } from './services/analyzer';
 import { Header, MainSection } from './components/common/Header';
 import { Footer } from './components/common/Footer';
@@ -33,11 +33,13 @@ import { ErrorPage } from './pages/ErrorPage';
 
 // Firebase Services
 import {
-  saveScanRecordToFirestore,
-  fetchUserScansFromFirestore,
+  saveScanHistory,
+  getScanHistory,
   signOutFirebaseUser,
   subscribeToAuthChanges,
-  fetchUserProfileFromFirestore,
+  getUserProfile,
+  getLearningProgress,
+  updateLearningProgress,
 } from './services/firebase';
 
 export default function App() {
@@ -45,6 +47,9 @@ export default function App() {
   const [user, setUser] = useState<User | null>(() => storageService.getUser());
   const [history, setHistory] = useState<AnalysisResult[]>(() => storageService.getHistory());
   const [activeDossier, setActiveDossier] = useState<AnalysisResult>(() => storageService.getActiveDossier());
+  const [simulatorProgress, setSimulatorProgress] = useState<SimulatorProgress>(() =>
+    storageService.getSimulatorProgress()
+  );
 
   // Check for public shareable achievement route (?achievement=true)
   const [isPublicAchievement] = useState<boolean>(() => {
@@ -90,18 +95,49 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('profile');
 
-  // Listen to Firebase Auth state
+  // Synchronize state with Firebase Auth and Cloud Firestore across refresh & sessions
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges(async (fbUser) => {
       if (fbUser) {
         try {
-          const cloudProfile = await fetchUserProfileFromFirestore(fbUser.uid);
+          // 1. Restore Profile from Firestore
+          const cloudProfile = await getUserProfile(fbUser.uid);
           if (cloudProfile) {
             setUser(cloudProfile);
             storageService.setUser(cloudProfile);
           }
+
+          // 2. Restore Learning Progress & Badge from Firestore
+          const cloudProgress = await getLearningProgress(fbUser.uid);
+          if (cloudProgress) {
+            setSimulatorProgress(cloudProgress);
+            storageService.saveSimulatorProgress(cloudProgress);
+          } else {
+            // One-time migration: If user has local simulator progress, sync to Firestore
+            const localProgress = storageService.getSimulatorProgress();
+            if (localProgress && localProgress.completedQuestions > 0) {
+              const saved = await updateLearningProgress(fbUser.uid, localProgress);
+              setSimulatorProgress(saved);
+            }
+          }
+
+          // 3. Restore Scan History from Firestore (sorted newest first)
+          const cloudScans = await getScanHistory(fbUser.uid);
+          if (cloudScans && cloudScans.length > 0) {
+            setHistory(cloudScans);
+            cloudScans.forEach((s) => storageService.saveScan(s));
+          } else {
+            // One-time migration: If user had local scans, sync to Firestore
+            const localScans = storageService.getHistory();
+            if (localScans && localScans.length > 0) {
+              for (const s of localScans) {
+                await saveScanHistory(fbUser.uid, s);
+              }
+              setHistory(localScans);
+            }
+          }
         } catch (err) {
-          console.warn('Could not sync auth profile from Firestore:', err);
+          console.warn('Could not sync user data from Cloud Firestore:', err);
         }
       }
     });
@@ -131,16 +167,23 @@ export default function App() {
     storageService.setUser(loggedInUser);
     setActiveView('section');
 
-    // Attempt to merge cloud scans from Firestore
     if (loggedInUser.id) {
       try {
-        const cloudScans = await fetchUserScansFromFirestore(loggedInUser.id);
+        // Load cloud learning progress and badge
+        const cloudProgress = await getLearningProgress(loggedInUser.id);
+        if (cloudProgress) {
+          setSimulatorProgress(cloudProgress);
+          storageService.saveSimulatorProgress(cloudProgress);
+        }
+
+        // Load cloud scan history
+        const cloudScans = await getScanHistory(loggedInUser.id);
         if (cloudScans && cloudScans.length > 0) {
+          setHistory(cloudScans);
           cloudScans.forEach((s) => storageService.saveScan(s));
-          setHistory(storageService.getHistory());
         }
       } catch (err) {
-        console.warn('Failed to load cloud scans:', err);
+        console.warn('Failed to load user cloud data on login:', err);
       }
     }
   };
@@ -157,8 +200,13 @@ export default function App() {
     } catch {
       // ignore
     }
+    // Clear user-specific state while leaving their Cloud Firestore data intact
     setUser(null);
     storageService.setUser(null);
+    const resetProg = DEFAULT_SIMULATOR_PROGRESS;
+    setSimulatorProgress(resetProg);
+    storageService.saveSimulatorProgress(resetProg);
+    setHistory([]);
   };
 
   const handleSelectSection = (section: MainSection) => {
@@ -178,6 +226,8 @@ export default function App() {
     brokerName?: string;
     regNumber?: string;
     imageBase64?: string;
+    imageBuffer?: string;
+    mimeType?: string;
   }) => {
     // If browser is offline, route to network error
     if (!navigator.onLine) {
@@ -197,6 +247,8 @@ export default function App() {
         brokerName: req.brokerName,
         regNumber: req.regNumber,
         imageBase64: req.imageBase64,
+        imageBuffer: req.imageBuffer,
+        mimeType: req.mimeType,
         language,
       });
 
@@ -205,9 +257,9 @@ export default function App() {
       setActiveDossier(result);
       storageService.setActiveDossier(result);
 
-      // Persist to Firebase Firestore if user is signed in
+      // Persist to Firebase Firestore if user is authenticated
       if (user?.id) {
-        saveScanRecordToFirestore(user.id, result).catch((err) =>
+        saveScanHistory(user.id, result).catch((err) =>
           console.warn('Background Firestore scan save failed:', err)
         );
       }
@@ -234,7 +286,18 @@ export default function App() {
     }
   };
 
-  const refreshHistory = () => {
+  const refreshHistory = async () => {
+    if (user?.id) {
+      try {
+        const cloudScans = await getScanHistory(user.id);
+        if (cloudScans && cloudScans.length > 0) {
+          setHistory(cloudScans);
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to refresh history from cloud:', err);
+      }
+    }
     setHistory(storageService.getHistory());
   };
 
@@ -242,9 +305,9 @@ export default function App() {
 
   if (isPublicAchievement) {
     const params = new URLSearchParams(window.location.search);
-    const score = Number(params.get('score')) || 80;
-    const correct = Number(params.get('correct')) || 8;
-    const total = Number(params.get('total')) || 10;
+    const score = Number(params.get('score')) || (simulatorProgress.points ?? simulatorProgress.score);
+    const correct = Number(params.get('correct')) || simulatorProgress.correctAnswers;
+    const total = Number(params.get('total')) || simulatorProgress.totalQuestions;
     return (
       <PublicAchievementPage
         score={score}
@@ -269,7 +332,7 @@ export default function App() {
           onSelectSection={handleSelectSection}
           onOpenSidebar={() => setSidebarOpen(true)}
           user={user}
-          hasBadge={Boolean(user && storageService.getSimulatorProgress().isCompleted)}
+          hasBadge={Boolean(user && (simulatorProgress.badgeEarned || simulatorProgress.completed || simulatorProgress.isCompleted))}
           onNavigateLogin={() => setActiveView('login')}
         />
       )}
@@ -291,6 +354,7 @@ export default function App() {
         history={history}
         onSelectDossier={handleSelectDossier}
         onRefreshHistory={refreshHistory}
+        simulatorProgress={simulatorProgress}
         onStartScan={() => {
           setSidebarOpen(false);
           handleSelectSection('scan');
@@ -407,6 +471,8 @@ export default function App() {
                 currentLanguage={language}
                 onNavigateScan={() => handleSelectSection('scan')}
                 onOpenProfile={() => handleOpenSidebarTab('profile')}
+                progress={simulatorProgress}
+                onProgressUpdate={(newProg) => setSimulatorProgress(newProg)}
               />
             )}
 

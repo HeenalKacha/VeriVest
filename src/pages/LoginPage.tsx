@@ -5,7 +5,7 @@ import { translations } from '../i18n/translations';
 import { VeriVestLogo } from '../components/common/VeriVestLogo';
 import { LanguageSelector } from '../components/common/LanguageSelector';
 import { ForgotPasswordModal } from '../components/modals/ForgotPasswordModal';
-import { signInWithGoogle } from '../services/firebase';
+import { signInWithGoogle, signInWithEmail } from '../services/firebase';
 
 interface LoginPageProps {
   currentLanguage: Language;
@@ -26,22 +26,34 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [rememberMe, setRememberMe] = useState(true);
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const t = translations[currentLanguage];
 
-  const handleSignIn = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    const demoUser: User = {
-      id: 'USR-8910',
-      name: identifier.includes('@') ? identifier.split('@')[0].replace('.', ' ') : 'Retail Investor',
-      email: identifier.includes('@') ? identifier : 'investor@verivest.org',
-      mobile: identifier.includes('@') ? '+91 98765 43210' : identifier,
-      age: 32,
-      gender: 'Male',
-      language: currentLanguage,
-      createdAt: new Date().toISOString(),
-    };
-    onLoginSuccess(demoUser);
+    setAuthError(null);
+    setIsLoadingAuth(true);
+    try {
+      const email = identifier.includes('@') ? identifier.trim() : `${identifier.trim()}@verivest.org`;
+      const { user } = await signInWithEmail(email, password);
+      onLoginSuccess(user);
+    } catch (err: any) {
+      console.warn('Firebase sign-in error:', err);
+      if (
+        err?.code === 'auth/invalid-credential' ||
+        err?.code === 'auth/wrong-password' ||
+        err?.code === 'auth/user-not-found'
+      ) {
+        setAuthError('Invalid credentials. If you haven’t set a password, please use Continue with Google.');
+      } else if (err?.code === 'auth/operation-not-allowed') {
+        setAuthError('Email sign-in is not enabled on this Firebase instance. Please click Continue with Google.');
+      } else {
+        setAuthError('Unable to sign in. Please verify your credentials or use Continue with Google.');
+      }
+    } finally {
+      setIsLoadingAuth(false);
+    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -250,9 +262,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 {/* Sign In Button */}
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 bg-[#111111] text-[#FCF9F8] text-xs font-sans tracking-[0.08em] uppercase font-semibold py-3.5 rounded-[4px] hover:bg-[#2A2A28] transition-colors"
+                  disabled={isLoadingAuth || isLoadingGoogle}
+                  className="w-full flex items-center justify-center gap-2 bg-[#111111] text-[#FCF9F8] text-xs font-sans tracking-[0.08em] uppercase font-semibold py-3.5 rounded-[4px] hover:bg-[#2A2A28] transition-colors disabled:opacity-60 cursor-pointer"
                 >
-                  <span>{t.auth.signInBtn}</span>
+                  <span>{isLoadingAuth ? 'Signing In...' : t.auth.signInBtn}</span>
                 </button>
 
                 {/* Divider */}

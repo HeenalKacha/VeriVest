@@ -4,7 +4,7 @@ import { Language, User } from '../types';
 import { translations } from '../i18n/translations';
 import { VeriVestLogo } from '../components/common/VeriVestLogo';
 import { LanguageSelector } from '../components/common/LanguageSelector';
-import { signInWithGoogle } from '../services/firebase';
+import { signInWithGoogle, signUpWithEmail } from '../services/firebase';
 
 interface SignUpPageProps {
   currentLanguage: Language;
@@ -29,32 +29,51 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [error, setError] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
 
   const t = translations[currentLanguage];
 
-  const handleCreateAccount = (e: React.FormEvent) => {
+  const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setAuthError(null);
     if (password !== confirmPassword) {
       setError('Passwords do not match. Please verify.');
       return;
     }
-
-    const newUser: User = {
-      id: `USR-${Math.floor(1000 + Math.random() * 9000)}`,
-      name: fullName || 'Retail Investor',
-      email: email || 'investor@verivest.org',
-      mobile: mobile || '+91 98765 43210',
-      age: 32,
-      gender: 'Male',
-      language: preferredLang,
-      createdAt: new Date().toISOString(),
-    };
-
-    if (preferredLang !== currentLanguage) {
-      onLanguageChange(preferredLang);
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
     }
-    onSignUpSuccess(newUser);
+
+    setIsLoadingAuth(true);
+    try {
+      const emailAddr = email.includes('@') ? email.trim() : `${email.trim()}@verivest.org`;
+      const { user } = await signUpWithEmail(
+        emailAddr,
+        password,
+        fullName.trim() || 'Verified Investor',
+        mobile.trim() || '+91 98765 43210',
+        30,
+        'Male'
+      );
+      if (preferredLang !== currentLanguage) {
+        onLanguageChange(preferredLang);
+      }
+      onSignUpSuccess(user);
+    } catch (err: any) {
+      console.warn('Firebase sign-up error:', err);
+      if (err?.code === 'auth/email-already-in-use') {
+        setError('This email address is already in use. Please sign in instead.');
+      } else if (err?.code === 'auth/operation-not-allowed') {
+        setAuthError('Email registration is not enabled on this Firebase instance. Please click Continue with Google.');
+      } else {
+        setAuthError('Unable to complete account registration. Please try Continue with Google.');
+      }
+    } finally {
+      setIsLoadingAuth(false);
+    }
   };
 
   const handleGoogleSignUp = async () => {
@@ -312,9 +331,10 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 bg-[#111111] text-[#FCF9F8] text-xs font-sans tracking-[0.08em] uppercase font-semibold py-3.5 rounded-[4px] hover:bg-[#2A2A28] transition-colors mt-2"
+                  disabled={isLoadingAuth || isLoadingGoogle}
+                  className="w-full flex items-center justify-center gap-2 bg-[#111111] text-[#FCF9F8] text-xs font-sans tracking-[0.08em] uppercase font-semibold py-3.5 rounded-[4px] hover:bg-[#2A2A28] transition-colors mt-2 disabled:opacity-60 cursor-pointer"
                 >
-                  <span>{t.auth.signUpBtn}</span>
+                  <span>{isLoadingAuth ? 'Creating Account...' : t.auth.signUpBtn}</span>
                 </button>
 
                 {/* Divider */}

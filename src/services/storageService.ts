@@ -8,7 +8,9 @@ const SIMULATOR_PROGRESS_KEY = 'verivest_simulator_progress';
 
 export const DEFAULT_USER: User = {
   id: 'usr-8921',
+  fullName: 'Rohan Sharma',
   name: 'Rohan Sharma',
+  contact: '+91 98765 43210',
   mobile: '+91 98765 43210',
   email: 'rohan.sharma@investor.in',
   age: 32,
@@ -18,13 +20,16 @@ export const DEFAULT_USER: User = {
 };
 
 export const DEFAULT_SIMULATOR_PROGRESS: SimulatorProgress = {
+  points: 0,
+  score: 0,
+  correctAnswers: 0,
+  completedQuestions: 0,
   totalQuestions: 10,
-  completedQuestions: 10,
-  correctAnswers: 8,
-  score: 80,
-  isCompleted: true,
-  completedAt: 'Just now',
+  completed: false,
+  isCompleted: false,
+  badgeEarned: false,
   badgeTitle: 'Investor Safety Learner',
+  updatedAt: new Date().toISOString(),
 };
 
 export const storageService = {
@@ -53,22 +58,28 @@ export const storageService = {
       const stored = localStorage.getItem(USER_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Ensure default fields exist
-        return {
-          id: parsed.id || 'usr-8921',
-          name: parsed.name || 'Rohan Sharma',
-          mobile: parsed.mobile || '+91 98765 43210',
-          email: parsed.email || 'rohan.sharma@investor.in',
-          age: parsed.age || 32,
-          gender: parsed.gender || 'Male',
-          language: parsed.language || 'en',
-          createdAt: parsed.createdAt || 'Oct 2026',
-        };
+        if (parsed && parsed.id) {
+          const fullName = parsed.fullName || parsed.name || 'Verified Investor';
+          const contact = parsed.contact || parsed.mobile || '+91 98765 43210';
+          return {
+            id: parsed.id,
+            fullName,
+            name: fullName,
+            contact,
+            mobile: contact,
+            email: parsed.email || '',
+            age: Number(parsed.age) || 32,
+            gender: parsed.gender === 'Female' ? 'Female' : 'Male',
+            language: parsed.language || 'en',
+            createdAt: parsed.createdAt || new Date().toISOString(),
+            updatedAt: parsed.updatedAt,
+          };
+        }
       }
     } catch {
       // fallback
     }
-    return DEFAULT_USER;
+    return null;
   },
 
   setUser(user: User | null): void {

@@ -45,9 +45,9 @@ export function detectInvestmentRisk({
 
   const matches: DetectionSignal[] = [];
   for (const indicator of indicators) {
-    if (!indicator.enabled || !indicator.languages.includes(normalizedLanguage)) {
-      const fallbackLanguage = indicator.languages.includes('en');
-      if (!fallbackLanguage) continue;
+    if (!indicator.enabled) continue;
+    if (!indicator.languages.includes(normalizedLanguage) && !indicator.languages.includes('en')) {
+      continue;
     }
     const regex = new RegExp(indicator.pattern, 'i');
     if (!regex.test(inputText)) continue;

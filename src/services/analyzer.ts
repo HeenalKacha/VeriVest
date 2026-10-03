@@ -12,13 +12,15 @@ import {
 } from '../types';
 import { verificationService } from './verificationService';
 
-interface AnalyzeRequest {
+export interface AnalyzeRequest {
   type: 'message' | 'url' | 'screenshot' | 'broker' | 'tip';
   content: string;
   brokerName?: string;
   regNumber?: string;
   imagePreview?: string;
   imageBase64?: string;
+  imageBuffer?: string;
+  mimeType?: string;
   language: Language;
 }
 
@@ -594,10 +596,18 @@ export async function analyzeLocally(req: AnalyzeRequest): Promise<AnalysisResul
         ? 'Social Media / Tip Group'
         : 'Entity / Registration Inquiry',
     rawInput: rawText,
-    extractedText: req.type === 'screenshot' ? rawText : undefined,
-    ocrConfidence: req.type === 'screenshot' ? 'high' : undefined,
+    ...(req.type === 'screenshot'
+      ? {
+          extractedText:
+            rawText ||
+            (req.content && !req.content.startsWith('Screenshot:') && req.content !== 'Uploaded image'
+              ? req.content
+              : 'Image inspected; no visible text extracted.'),
+          ocrConfidence: rawText ? ('high' as const) : ('low' as const),
+        }
+      : {}),
     sensitiveDataDetected: privacyCheck.detected,
-    sensitiveDataMessage: privacyCheck.message,
+    ...(privacyCheck.message ? { sensitiveDataMessage: privacyCheck.message } : {}),
     riskScore,
     riskLevel,
     assessment,
@@ -692,16 +702,30 @@ function normalizeAnalysisResponse(payload: any): AnalysisResult {
         ? 'Social Media / Tip Group'
         : 'Entity / Registration Inquiry',
     rawInput: payload?.rawInput || payload?.message || payload?.content || '',
+    ...(payload?.extractedText || payload?.analysis?.extractedText
+      ? { extractedText: payload?.extractedText || payload?.analysis?.extractedText }
+      : {}),
+    ...(payload?.ocrConfidence || payload?.analysis?.ocrConfidence
+      ? { ocrConfidence: payload?.ocrConfidence || payload?.analysis?.ocrConfidence }
+      : sourceType === 'screenshot'
+      ? { ocrConfidence: 'high' as const }
+      : {}),
+    sensitiveDataDetected: Boolean(payload?.sensitiveDataDetected),
+    ...(payload?.sensitiveDataMessage || payload?.analysis?.sensitiveDataMessage
+      ? { sensitiveDataMessage: payload?.sensitiveDataMessage || payload?.analysis?.sensitiveDataMessage }
+      : {}),
     riskScore,
     riskLevel,
     assessment,
     warningIndicatorsCount: normalizedSignals.length,
     assessmentCaveat:
       payload?.assessmentCaveat ||
+      payload?.analysis?.assessmentCaveat ||
       'This assessment is based on observable warning signs and verification gaps. It is not a guarantee that the content is fraudulent or safe.',
     summary,
     forensicDirective:
       payload?.forensicDirective ||
+      payload?.analysis?.forensicDirective ||
       (riskLevel === 'HIGH'
         ? 'Pause before investing. Do not transfer funds until independently verified.'
         : riskLevel === 'SUSPICIOUS'
@@ -709,6 +733,9 @@ function normalizeAnalysisResponse(payload: any): AnalysisResult {
         : 'Maintain standard financial hygiene and independent verification.'),
     whyThisMatters:
       payload?.whyThisMatters ||
+      payload?.analysis?.whyThisMatters ||
+      payload?.aiAnalysis ||
+      payload?.analysis?.aiAnalysis ||
       (normalizedSignals.length > 0
         ? 'The content contains observed risk indicators that warrant independent verification.'
         : 'This content did not show clear warning signals based on the current rule set.'),
@@ -722,7 +749,12 @@ function normalizeAnalysisResponse(payload: any): AnalysisResult {
       detectedPattern: signal.evidence,
       confidence: 0.95,
     })),
-    recommendedActions: payload?.recommendations || payload?.recommendedActions || [],
+    recommendedActions:
+      payload?.recommendations ||
+      payload?.recommendedActions ||
+      payload?.analysis?.recommendations ||
+      payload?.analysis?.recommendedActions ||
+      [],
     verificationDetails: {
       claimedEntity: verification?.entity || verification?.subject || 'Unspecified Entity',
       claimedRegNumber: verification?.registrationNumber || 'Not provided',
@@ -732,36 +764,85 @@ function normalizeAnalysisResponse(payload: any): AnalysisResult {
       whatWasVerified: Array.isArray(verification?.details) ? verification.details : [],
       whatCouldNotBeVerified: ['No additional independent checks were available for this scan.'],
     },
-    urlSafety: payload?.urlSafety,
-    limitations: payload?.limitations || [
+    urlSafety: payload?.urlSafety || payload?.analysis?.urlSafety,
+    limitations: payload?.limitations || payload?.analysis?.limitations || [
       'Automated analysis uses observed indicators and does not replace formal institutional verification.',
     ],
-    speechSummary: payload?.speechSummary || summary,
+    speechSummary: payload?.speechSummary || payload?.analysis?.speechSummary || summary,
   };
 }
 
 export const analyzerService = {
   async analyze(req: AnalyzeRequest): Promise<AnalysisResult> {
+    // 1. Multimodality check for screenshot analysis
+    let payload: any = { ...req };
+
+    if (req.type === 'screenshot') {
+      const rawImage = req.imageBase64 || req.imageBuffer || req.imagePreview || '';
+      if (!rawImage || typeof rawImage !== 'string' || !rawImage.trim()) {
+        throw new Error('Screenshot analysis requires an image buffer or base64 data.');
+      }
+
+      // Extract or determine correct MIME type
+      let mimeType = req.mimeType || 'image/png';
+      let cleanImage = rawImage.trim();
+
+      if (cleanImage.startsWith('data:')) {
+        const mimeMatch = cleanImage.match(/^data:([^;]+);base64,/);
+        if (mimeMatch) {
+          mimeType = mimeMatch[1];
+        }
+      } else {
+        // If raw base64 data, infer MIME type from magic headers or default to image/png
+        if (cleanImage.startsWith('/9j/')) mimeType = 'image/jpeg';
+        else if (cleanImage.startsWith('iVBORw0KGgo')) mimeType = 'image/png';
+        else if (cleanImage.startsWith('UklGR')) mimeType = 'image/webp';
+        cleanImage = `data:${mimeType};base64,${cleanImage}`;
+      }
+
+      payload = {
+        ...req,
+        type: 'screenshot',
+        mimeType,
+        imageBase64: cleanImage,
+        imageBuffer: cleanImage,
+      };
+    }
+
+    let result: AnalysisResult | null = null;
+
     try {
       // First attempt to call the server-side API endpoint
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(req),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
         const data = await response.json();
         const nested = data?.analysis || data;
         if (nested && typeof nested.riskScore === 'number') {
-          return normalizeAnalysisResponse(data);
+          result = normalizeAnalysisResponse(data);
         }
       }
     } catch {
       // Fallback smoothly to deterministic local engine
     }
 
-    return analyzeLocally(req);
+    if (!result) {
+      result = await analyzeLocally(payload);
+    }
+
+    // 2. Validation step: verify that extracted text is not empty before returning the result
+    if (req.type === 'screenshot') {
+      const extracted = result.extractedText?.trim();
+      if (!extracted || extracted.length === 0) {
+        throw new Error('Screenshot analysis validation failed: extracted text is empty.');
+      }
+    }
+
+    return result;
   },
 
   async verifyBroker(name: string, regNumber: string, language: Language): Promise<AnalysisResult> {

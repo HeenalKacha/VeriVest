@@ -1,6 +1,6 @@
 {
-  "name": "Remix VeriVest",
-  "description": "Imported from GitHub: krishathakkar24/VeriVest",
+  "name": "VeriVest",
+  "description": "Verify investment messages, links, entity credentials, and financial claims before you send money or share sensitive information.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

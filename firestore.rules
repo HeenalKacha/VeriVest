@@ -24,60 +24,72 @@ service cloud.firestore {
     }
 
     function isValidUserProfile(data) {
-      return data.keys().hasAll(['id', 'name', 'email', 'gender', 'createdAt'])
-        && data.id is string && data.id.size() <= 128
-        && data.name is string && data.name.size() <= 100
-        && data.email is string && data.email.size() <= 150
-        && data.gender in ['Male', 'Female']
-        && (!('age' in data) || data.age is number)
-        && (!('mobile' in data) || (data.mobile is string && data.mobile.size() <= 30))
-        && (!('language' in data) || data.language in ['en', 'hi', 'mr'])
-        && (!('isVerified' in data) || data.isVerified is bool)
-        && data.createdAt is string;
+      return ((data.keys().hasAll(['fullName', 'email', 'gender', 'createdAt'])
+          && data.fullName is string && data.fullName.size() <= 100
+          && data.email is string && data.email.size() <= 150
+          && data.gender in ['Male', 'Female']
+          && (!('contact' in data) || (data.contact is string && data.contact.size() <= 30))
+          && (!('age' in data) || data.age is number)
+          && (!('updatedAt' in data) || data.updatedAt is string)
+          && data.createdAt is string)
+        || (data.keys().hasAll(['name', 'email', 'gender', 'createdAt'])
+          && data.name is string && data.name.size() <= 100
+          && data.email is string && data.email.size() <= 150
+          && data.gender in ['Male', 'Female']
+          && (!('mobile' in data) || (data.mobile is string && data.mobile.size() <= 30))
+          && (!('age' in data) || data.age is number)
+          && data.createdAt is string));
     }
 
-    function isValidScanRecord(data, userId) {
-      return data.keys().hasAll(['id', 'userId', 'type', 'riskLevel', 'score', 'createdAt'])
-        && data.id is string && data.id.size() <= 128
-        && data.userId == userId
-        && data.type in ['message', 'url', 'screenshot', 'broker', 'tip']
-        && data.riskLevel in ['LOW CONCERN', 'REQUIRES CAUTION', 'HIGH CONCERN']
-        && data.score is number
-        && data.createdAt is string
-        && (!('summary' in data) || (data.summary is string && data.summary.size() <= 2000))
-        && (!('rawInput' in data) || (data.rawInput is string && data.rawInput.size() <= 5000));
-    }
-
-    function isValidProgressRecord(data, userId) {
-      return data.keys().hasAll(['userId', 'totalQuestions', 'completedQuestions', 'correctAnswers', 'score', 'isCompleted'])
-        && data.userId == userId
-        && data.totalQuestions is number
+    function isValidLearningProgress(data) {
+      return data.keys().hasAll(['completedQuestions', 'correctAnswers'])
         && data.completedQuestions is number
         && data.correctAnswers is number
-        && data.score is number
-        && data.isCompleted is bool
-        && (!('badgeTitle' in data) || (data.badgeTitle is string && data.badgeTitle.size() <= 100))
-        && (!('completedAt' in data) || data.completedAt is string);
+        && (!('points' in data) || data.points is number)
+        && (!('score' in data) || data.score is number)
+        && (!('totalQuestions' in data) || data.totalQuestions is number)
+        && (!('completed' in data) || data.completed is bool)
+        && (!('isCompleted' in data) || data.isCompleted is bool)
+        && (!('badgeEarned' in data) || data.badgeEarned is bool)
+        && (!('updatedAt' in data) || data.updatedAt is string);
     }
 
-    // User profile document
+    function isValidScanHistory(data) {
+      return ((data.keys().hasAll(['scanType', 'createdAt', 'result', 'riskLevel', 'summary'])
+          && data.scanType is string && data.scanType.size() <= 50
+          && data.createdAt is string
+          && data.result is string && data.result.size() <= 200
+          && data.riskLevel is string && data.riskLevel.size() <= 50
+          && data.summary is string && data.summary.size() <= 10000)
+        || (data.keys().hasAll(['type', 'createdAt', 'riskLevel', 'summary'])
+          && data.type is string && data.type.size() <= 50
+          && data.createdAt is string
+          && data.riskLevel is string && data.riskLevel.size() <= 50
+          && data.summary is string && data.summary.size() <= 10000));
+    }
+
+    // User profile root document
     match /users/{userId} {
       allow get: if isValidId(userId) && isOwner(userId);
-      allow create: if isValidId(userId) && isOwner(userId) && isValidUserProfile(incoming()) && incoming().id == userId;
-      allow update: if isValidId(userId) && isOwner(userId) && isValidUserProfile(incoming()) && incoming().id == userId;
+      allow list: if false; // PII protection: users collection cannot be listed
+      allow create: if isValidId(userId) && isOwner(userId) && isValidUserProfile(incoming());
+      allow update: if isValidId(userId) && isOwner(userId) && isValidUserProfile(incoming());
       allow delete: if isValidId(userId) && isOwner(userId);
 
-      // Scans subcollection
-      match /scans/{scanId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isValidId(userId) && isOwner(userId) && isValidScanRecord(incoming(), userId) && incoming().userId == userId;
+      // Learning progress subcollection
+      match /learning/{docId} {
+        allow get: if isValidId(userId) && isOwner(userId);
+        allow list: if isValidId(userId) && isOwner(userId);
+        allow create, update: if isValidId(userId) && isOwner(userId) && isValidLearningProgress(incoming());
         allow delete: if isValidId(userId) && isOwner(userId);
       }
 
-      // Progress subcollection / document
-      match /progress/{progressId} {
-        allow get: if isOwner(userId);
-        allow create, update: if isValidId(userId) && isOwner(userId) && isValidProgressRecord(incoming(), userId) && incoming().userId == userId;
+      // Scan history subcollection
+      match /scanHistory/{scanId} {
+        allow get, list: if isValidId(userId) && isOwner(userId);
+        allow create: if isValidId(userId) && isOwner(userId) && isValidScanHistory(incoming());
+        allow update: if isValidId(userId) && isOwner(userId) && isValidScanHistory(incoming());
+        allow delete: if isValidId(userId) && isOwner(userId);
       }
     }
   }

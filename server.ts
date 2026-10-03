@@ -3,10 +3,21 @@ import path from 'node:path';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 
-import analyzeRoutes from './backend/routes/analyzeRoutes.js';
-import { errorHandler } from './backend/middleware/errorHandler.js';
-
 dotenv.config();
+
+// If invoked directly with plain node without tsx loader, auto-delegate with --import tsx
+if (!process.env.TSX_SPAWNED && !process.execArgv.some((a) => a.includes('tsx'))) {
+  const { spawn } = await import('node:child_process');
+  const child = spawn(process.execPath, ['--import', 'tsx', ...process.argv.slice(1)], {
+    stdio: 'inherit',
+    env: { ...process.env, TSX_SPAWNED: '1' },
+  });
+  child.on('exit', (code) => process.exit(code ?? 0));
+  await new Promise(() => {});
+}
+
+const analyzeRoutes = (await import('./backend/routes/analyzeRoutes.js')).default;
+const { errorHandler } = await import('./backend/middleware/errorHandler.js');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;

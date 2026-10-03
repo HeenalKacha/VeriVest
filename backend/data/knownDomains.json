@@ -30,5 +30,37 @@
     "status": "VERIFIED",
     "source": "https://www.bseindia.com/",
     "lastChecked": "2026-10-02"
+  },
+  {
+    "domain": "cybercrime.gov.in",
+    "category": "government helpline",
+    "entity": "National Cyber Crime Reporting Portal",
+    "status": "VERIFIED",
+    "source": "https://cybercrime.gov.in/",
+    "lastChecked": "2026-10-02"
+  },
+  {
+    "domain": "zerodha.com",
+    "category": "registered broker",
+    "entity": "Zerodha Broking Limited",
+    "status": "VERIFIED",
+    "source": "https://zerodha.com/",
+    "lastChecked": "2026-10-02"
+  },
+  {
+    "domain": "groww.in",
+    "category": "registered broker",
+    "entity": "Groww (Nextbillion Technology)",
+    "status": "VERIFIED",
+    "source": "https://groww.in/",
+    "lastChecked": "2026-10-02"
+  },
+  {
+    "domain": "hdfcfund.com",
+    "category": "mutual fund",
+    "entity": "HDFC Mutual Fund",
+    "status": "VERIFIED",
+    "source": "https://www.hdfcfund.com/",
+    "lastChecked": "2026-10-02"
   }
 ]
