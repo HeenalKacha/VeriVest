@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth';
 import {
   getFirestore,
+  initializeFirestore,
   doc,
   setDoc,
   getDoc,
@@ -53,9 +54,35 @@ export interface FirestoreErrorInfo {
   };
 }
 
+export function isPermissionError(error: unknown): boolean {
+  if (!error) return false;
+  const msg = error instanceof Error ? error.message : String(error);
+  const code = (error as any)?.code;
+  return (
+    code === 'permission-denied' ||
+    msg.toLowerCase().includes('permission') ||
+    msg.toLowerCase().includes('insufficient')
+  );
+}
+
+export function isOfflineError(error: unknown): boolean {
+  if (!error) return false;
+  const msg = error instanceof Error ? error.message : String(error);
+  const code = (error as any)?.code;
+  return (
+    code === 'unavailable' ||
+    code === 'failed-precondition' ||
+    msg.toLowerCase().includes('offline') ||
+    msg.toLowerCase().includes('unavailable') ||
+    msg.toLowerCase().includes('could not reach') ||
+    msg.toLowerCase().includes('network')
+  );
+}
+
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
+  const errMsg = error instanceof Error ? error.message : String(error);
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errMsg,
     authInfo: {
       userId: auth?.currentUser?.uid,
       email: auth?.currentUser?.email,
@@ -71,7 +98,13 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path,
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
+
+  // Only log formatted "Firestore Error: " for security permission issues as mandated by the skill
+  if (isPermissionError(error)) {
+    console.error('Firestore Error: ', JSON.stringify(errInfo));
+  } else {
+    console.warn(`Firestore ${operationType} warning (${path}):`, errMsg);
+  }
   throw new Error(JSON.stringify(errInfo));
 }
 
@@ -116,9 +149,19 @@ export function initializeFirebase(): { app: FirebaseApp | null; auth: Auth | nu
   if (!appInstance && isConfigValid) {
     appInstance = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     authInstance = getAuth(appInstance);
-    dbInstance = firebaseConfig.firestoreDatabaseId
-      ? getFirestore(appInstance, firebaseConfig.firestoreDatabaseId)
-      : getFirestore(appInstance);
+    try {
+      dbInstance = firebaseConfig.firestoreDatabaseId
+        ? initializeFirestore(appInstance, {
+            experimentalAutoDetectLongPolling: true,
+          }, firebaseConfig.firestoreDatabaseId)
+        : initializeFirestore(appInstance, {
+            experimentalAutoDetectLongPolling: true,
+          });
+    } catch {
+      dbInstance = firebaseConfig.firestoreDatabaseId
+        ? getFirestore(appInstance, firebaseConfig.firestoreDatabaseId)
+        : getFirestore(appInstance);
+    }
   }
   return { app: appInstance, auth: authInstance, db: dbInstance };
 }
@@ -216,13 +259,15 @@ export async function createUserProfile(uid: string, profileData: Partial<User>)
     await setDoc(doc(db, 'users', uid), sanitizeForFirestore(userDoc), { merge: true });
     return mapDocToUser(uid, userDoc);
   } catch (err) {
-    console.error('Failed to create user profile in Firestore:', err);
-    try {
-      handleFirestoreError(err, OperationType.WRITE, path);
-    } catch {
-      // Re-throw user-friendly message
-      throw new Error('Unable to create your profile. Please try again.');
+    if (isPermissionError(err)) {
+      try {
+        handleFirestoreError(err, OperationType.WRITE, path);
+      } catch {
+        throw new Error('Unable to create your profile. Please try again.');
+      }
     }
+    console.warn('Failed to create user profile in Firestore (offline mode):', (err as any)?.message || err);
+    return mapDocToUser(uid, userDoc);
   }
 }
 
@@ -239,12 +284,11 @@ export async function getUserProfile(uid: string): Promise<User | null> {
     }
     return null;
   } catch (err) {
-    console.warn('Error reading user profile from Firestore:', err);
-    try {
+    if (isPermissionError(err)) {
       handleFirestoreError(err, OperationType.GET, path);
-    } catch {
-      return null;
     }
+    console.warn(`Firestore profile read notice for ${path}:`, (err as any)?.message || err);
+    return null;
   }
 }
 
@@ -281,12 +325,15 @@ export async function updateUserProfile(uid: string, profileData: Partial<User>)
     await setDoc(doc(db, 'users', uid), sanitizeForFirestore(payload), { merge: true });
     return mapDocToUser(uid, payload);
   } catch (err) {
-    console.error('Failed to update user profile:', err);
-    try {
-      handleFirestoreError(err, OperationType.UPDATE, path);
-    } catch {
-      throw new Error('Unable to save your profile changes. Please try again.');
+    if (isPermissionError(err)) {
+      try {
+        handleFirestoreError(err, OperationType.UPDATE, path);
+      } catch {
+        throw new Error('Unable to save your profile changes. Please try again.');
+      }
     }
+    console.warn('Failed to update user profile in Firestore (saving locally):', (err as any)?.message || err);
+    return mapDocToUser(uid, payload);
   }
 }
 
@@ -324,12 +371,11 @@ export async function getLearningProgress(uid: string): Promise<SimulatorProgres
     }
     return null;
   } catch (err) {
-    console.warn('Failed to get learning progress from Firestore:', err);
-    try {
+    if (isPermissionError(err)) {
       handleFirestoreError(err, OperationType.GET, path);
-    } catch {
-      return null;
     }
+    console.warn(`Firestore learning progress read notice for ${path}:`, (err as any)?.message || err);
+    return null;
   }
 }
 
@@ -375,10 +421,13 @@ export async function updateLearningProgress(
     await setDoc(doc(db, 'users', uid, 'learning', 'progress'), sanitizeForFirestore(payload), { merge: true });
     return payload;
   } catch (err) {
-    console.warn('Failed to update learning progress in Firestore:', err);
-    try {
-      handleFirestoreError(err, OperationType.WRITE, path);
-    } catch {
+    if (isPermissionError(err)) {
+      try {
+        handleFirestoreError(err, OperationType.WRITE, path);
+      } catch {
+        console.warn('Learning progress update blocked by permissions.');
+      }
+    } else {
       console.warn('Learning progress update saved to local storage fallback.');
     }
     return payload;
@@ -418,10 +467,13 @@ export async function saveScanHistory(uid: string, scan: AnalysisResult): Promis
   try {
     await setDoc(doc(db, 'users', uid, 'scanHistory', scan.id), sanitizeForFirestore(payload));
   } catch (err) {
-    console.error('Failed to save scan to Firestore:', err);
-    try {
-      handleFirestoreError(err, OperationType.WRITE, path);
-    } catch {
+    if (isPermissionError(err)) {
+      try {
+        handleFirestoreError(err, OperationType.WRITE, path);
+      } catch {
+        console.warn('Scan history write permission notice.');
+      }
+    } else {
       console.warn('Scan history saved to local fallback.');
     }
   }
@@ -486,12 +538,11 @@ export async function getScanHistory(uid: string): Promise<AnalysisResult[]> {
 
     return results;
   } catch (err) {
-    console.warn('Failed to fetch scan history from Firestore:', err);
-    try {
+    if (isPermissionError(err)) {
       handleFirestoreError(err, OperationType.LIST, path);
-    } catch {
-      return [];
     }
+    console.warn(`Firestore scan history read notice for ${path}:`, (err as any)?.message || err);
+    return [];
   }
 }
 
@@ -504,12 +555,10 @@ export async function deleteScanHistoryItem(uid: string, scanId: string): Promis
   try {
     await deleteDoc(doc(db, 'users', uid, 'scanHistory', scanId));
   } catch (err) {
-    console.warn('Failed to delete scan from Firestore:', err);
-    try {
+    if (isPermissionError(err)) {
       handleFirestoreError(err, OperationType.DELETE, path);
-    } catch {
-      // ignore
     }
+    console.warn(`Firestore delete notice for ${path}:`, (err as any)?.message || err);
   }
 }
 

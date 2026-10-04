@@ -105,6 +105,11 @@ export default function App() {
           if (cloudProfile) {
             setUser(cloudProfile);
             storageService.setUser(cloudProfile);
+          } else {
+            const localUser = storageService.getUser();
+            if (localUser) {
+              setUser(localUser);
+            }
           }
 
           // 2. Restore Learning Progress & Badge from Firestore
@@ -113,11 +118,10 @@ export default function App() {
             setSimulatorProgress(cloudProgress);
             storageService.saveSimulatorProgress(cloudProgress);
           } else {
-            // One-time migration: If user has local simulator progress, sync to Firestore
             const localProgress = storageService.getSimulatorProgress();
             if (localProgress && localProgress.completedQuestions > 0) {
-              const saved = await updateLearningProgress(fbUser.uid, localProgress);
-              setSimulatorProgress(saved);
+              setSimulatorProgress(localProgress);
+              updateLearningProgress(fbUser.uid, localProgress).catch(() => {});
             }
           }
 
@@ -127,12 +131,8 @@ export default function App() {
             setHistory(cloudScans);
             cloudScans.forEach((s) => storageService.saveScan(s));
           } else {
-            // One-time migration: If user had local scans, sync to Firestore
             const localScans = storageService.getHistory();
             if (localScans && localScans.length > 0) {
-              for (const s of localScans) {
-                await saveScanHistory(fbUser.uid, s);
-              }
               setHistory(localScans);
             }
           }
