@@ -90,30 +90,10 @@ The platform also includes educational resources and simulation features to help
 
 > Follow the project's configured scripts and backend setup if the frontend and backend need to run separately.
 
-## 🔐 Environment Variables
-
-| Variable | Description |
-|---|---|
-| `GEMINI_API_KEY` | API key used for Gemini integration |
-
-**Security:** Never commit `.env.local` or expose your actual API key in public repositories. Use environment variables in your deployment settings.
-
-## 🚀 Deployment
-
-VeriVest can be deployed using Vercel, provided the project's frontend and backend routes are configured correctly for the deployment environment.
-
-1. Import the GitHub repository into Vercel.
-2. Configure the required environment variables.
-3. Verify the build settings and deployment logs.
-4. Test the deployed application and its API endpoints.
-
 ## 🎯 Project Objective
 
 The objective of VeriVest is to improve awareness of digital investment scams by combining AI-assisted analysis with accessible educational tools.
 
-## ⚠️ Disclaimer
-
-VeriVest provides AI-assisted risk insights for educational and informational purposes only. Its results may be inaccurate or incomplete and should not be treated as a guarantee that an investment, message, link, or entity is safe or fraudulent. Always verify financial information through official sources before making decisions.
 
 ## 👩‍💻 Author
 
